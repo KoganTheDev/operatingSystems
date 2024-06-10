@@ -1,3 +1,3 @@
-cd ~/operatingSystems/lab2/targil2
+cd ~/operatingSystems/lab2/targil3
 cc catByAt.c -o catByAt
-/. catByAt Israel1990_gmail_com
+./catByAt Israel1990_gmail_com
