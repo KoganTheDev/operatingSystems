@@ -29,7 +29,7 @@ int main(int argc, char* argv[]){
     while ((charCounterFirstFile = read(firstFile, bufferFirstFile, 256)) > 0 && (charCountSecondFile = read(secondFile, bufferSecondFile, 256)) > 0){
         while (i < charCounterFirstFile && j < charCountSecondFile){
             if (bufferFirstFile[i] != bufferSecondFile[j]){
-                printf("Different files");
+                printf("Different files\n");
                 newTextFile = open("compare.txt", O_WRONLY | O_CREAT, 0644);
                 if (newTextFile < 0){
                     printf("The new Text file has failed to open.\n");
@@ -42,17 +42,15 @@ int main(int argc, char* argv[]){
 
                 // Read each file until the end and write it in the new text file.
                 while ((charCounterFirstFile = read(firstFile, bufferFirstFile, 256)) > 0){
-                    write(newTextFile, bufferFirstFile, 256);
-
+                    write(newTextFile, bufferFirstFile, charCounterFirstFile);
                 }
                 while ((charCountSecondFile = read(secondFile, bufferSecondFile, 256)) > 0){
-                    write(newTextFile, bufferSecondFile, 256);
+                    write(newTextFile, bufferSecondFile, charCountSecondFile);
                 }
 
                 close(newTextFile);
                 return 0;
             }
-
             i++;
             j++;
         }
