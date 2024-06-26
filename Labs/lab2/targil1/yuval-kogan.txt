@@ -1,0 +1,4 @@
+WC(1)                            User Commands                           WC(1)
+
+
+GNU coreutils 9.4                 April 2024                             WC(1)
