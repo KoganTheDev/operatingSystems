@@ -6,8 +6,21 @@ TODO:
 -> Closes Standard_Shell and goes back to Shell.
 */
 
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
 void main(){
-
-
-    return ;
+    int pid;
+    
+    if ((pid = fork()) < 0){
+        printf("Forking in the function \"exit\" has failed.");
+        exit(1);
+    }
+    if (pid == 0){
+        execlp("./functions/Standard_Shell_functions/Goodbye", NULL);
+    }
+    else{
+        rmdir("./Commands");
+    }
 }
