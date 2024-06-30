@@ -5,3 +5,9 @@ TODO:
 -> Deletes the directory Commands
 -> Closes Standard_Shell and goes back to Shell.
 */
+
+void main(){
+
+
+    return ;
+}

@@ -7,6 +7,6 @@ returns: the Square root of the given number.
 #include <stdio.h>
 #include <math.h>
 
-int Sqrt(int number){
-
+double main(double number){
+    return (sqrt(number));
 }
