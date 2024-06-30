@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <math.h>
+#include <stdlib.h>
 
 /**
  * Summary:
@@ -12,7 +13,16 @@
  * Returns:
  * @return - (double type): The result of base raised to the power.
  */
-double main(double base, double power){
+double main(int argc, char* argv[]){
+
+    if (argc != 3){
+        printf("The function \"Power\" needs 3 parameters.\n");
+        exit(1);
+    }
+
+    double base = atoi(argv[1]);
+    double power = atoi(argv[2]);
+
     printf("%.0lf", pow(base, power));
     return (pow(base, power));
 }

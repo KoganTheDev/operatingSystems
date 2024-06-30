@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 
 /**
@@ -11,7 +12,20 @@
  * Returns:
  * @return - (double type): The square root of the given number.
  */
-double main(double number){
+double main(int argc, char* argv[]){
+
+    if (argc != 2){
+        printf("The function \"Sqrt\" needs 2 parameters.\n");
+        exit(1);
+    }
+
+    double number = atoi(argv[1]);
+
+    if (number < 0){
+        printf("Math Error!\n");
+        exit(1);
+    }
+
     printf("%.0lf", sqrt(number));
     return (sqrt(number));
 }

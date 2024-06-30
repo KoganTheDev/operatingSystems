@@ -1,6 +1,3 @@
-//TODO: Insert compilation and running commands
-// of all the C programs given
-
 # C functions under HW1
 gcc ./Standard_shell.c  -o Standard_shell
 chmod +x Standard_shell

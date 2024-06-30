@@ -21,7 +21,15 @@
  * - If the discriminant is zero, it returns the single root.
  * - If the discriminant is positive, it forks the process to calculate both roots, returning one from each process.
  */
-double main(double a, double b, double c){
+double main(int argc, char* argv[]){
+
+    if (argc != 4){
+        printf("The function \"Solve\" needs 4 parameters.\n");
+        exit(1);
+    }
+    double a = atoi(argv[1]);
+    double b = atoi(argv[2]);
+    double c = atoi(argv[3]);
     int pid;
     double firstSolution, secondSolution;
     double numInSqaureRoot = b * b - 4 * a * c;
@@ -40,7 +48,7 @@ double main(double a, double b, double c){
         secondSolution = ((-b) - Sqrt(numInSqaureRoot)) / (2 * a);
 
         if ((pid = fork()) < 0){
-            printf("Creating a new process in \"Solve\" has failed.\n");
+            printf("Creating a new process if \"Solve\" has failed.\n");
             exit(1);
         }
         

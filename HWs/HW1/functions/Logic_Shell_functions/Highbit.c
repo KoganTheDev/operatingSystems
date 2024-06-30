@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 /**
  * Summary:
@@ -14,7 +15,15 @@
  * The function iterates through each bit of the input number, checking if it's set (1).
  * It uses bitwise operations to shift and count set bits until the number is zero.
  */
-int main(int number) {
+int main(int argc, char* argv[]){
+
+    if (argc != 2){
+        printf("The function \"Highbit\" must get 2 parameters.\n");
+        exit(1);
+    }
+
+    int number = atoi(argv[1]);
+
     int count = 0;
 
     while (number) {
