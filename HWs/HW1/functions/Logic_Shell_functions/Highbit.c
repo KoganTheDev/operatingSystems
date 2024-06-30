@@ -1,13 +1,19 @@
-/*
-TODO:
-Gets one parameter  (int)
-returns: how many bits are 1 in the given number.
-
-** int contains 32-bits
-*/
-
 #include <stdio.h>
 
+/**
+ * Summary:
+ * Counts the number of set bits (1s) in the binary representation of an integer.
+ *
+ * Arguments:
+ * @param number - (int type): The number whose bits are to be counted.
+ *
+ * Returns:
+ * @return - (int type): The count of set bits in the binary representation.
+ *
+ * Details:
+ * The function iterates through each bit of the input number, checking if it's set (1).
+ * It uses bitwise operations to shift and count set bits until the number is zero.
+ */
 int main(int number) {
     int count = 0;
 
@@ -16,5 +22,6 @@ int main(int number) {
         number >>= 1; // Consume the lsb.
     }
 
+    print("%d\n", count);
     return count;
 }
