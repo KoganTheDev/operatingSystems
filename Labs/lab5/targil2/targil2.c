@@ -43,7 +43,7 @@ void* increment(void* pThread){
 void* printCounter(void* pThread){
     while (1){
         printf("%lu\n", counter);
-        usleep(100);
+        usleep(100000);
     }
 
     return NULL;
