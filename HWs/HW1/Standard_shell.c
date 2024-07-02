@@ -10,8 +10,14 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
+#include <dirent.h>
+#include <errno.h>
 
 #define SIZE_OF_INPUT 256
+#define MAX_ARGS 4
+
+void createNewDir();
+void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex);
 
 void main(int argc, char* argv[]){
 
@@ -21,87 +27,114 @@ void main(int argc, char* argv[]){
     }
 
     char userInput[SIZE_OF_INPUT];
-    char* arguments[4];
-    char* token;
-    int argumentsIndex = 0;
-    int commandsForMath;
+    char* arguments[MAX_ARGS + 1]; // The last location is saved for a NULL character
+    int argumentsIndex;
     int pid;
 
-    if(mkdir("./Commands",0700) == -1){
-        printf("Making the new directory has failed.\n");
-        exit(1);
-    }
+    createNewDir();
     
-
     while (1){
-        printf("StandardShell>");
+        printf("StandardShell > ");
         
         // Grab input from the user until you get a '\n' character.
         if ((fgets(userInput, SIZE_OF_INPUT, stdin)) == NULL){
-            printf("fgets in \"Math_shell\" has failed to grab input.\n");
+            printf("fgets in \"Standard_shell\" has failed to grab input.\n");
             exit(1);
         }
 
-        // Split the input into token and put each one of them in the array of arguments.
-        token = (userInput, " ");
-        arguments[argumentsIndex] = token;
-        argumentsIndex++;
+        // Remove the new line character
+        userInput[strcspn(userInput, "\n")] = 0;
 
-        while (token != NULL){
-            token = strtok(NULL, " ");
-            arguments[argumentsIndex] = token;
-            argumentsIndex++;
+        parseUserInput(userInput, arguments, &argumentsIndex);
+
+        // Special case: the user didn`t insert input therefore allow him to try inserting once again.
+        if (argumentsIndex == 0){
+            printf("No input received.\n");
+            continue;
         }
 
         if ((pid = fork()) < 0){
-                printf("Forking has failed for the Math_Shell.\n");
+                printf("Forking has failed for the Standard_Shell.\n");
                 exit(1);
         }
 
         // Look for the exact match function to run
         if ((strcmp(arguments[0], "exit")) == 0){
             if (pid == 0){
-                execlp("./functions/Standard_Shell_functions/exit", NULL);
+                execlp("./Compiled_files/exit", "exit", NULL);
+            }
+            else{ // Parent`s clause
+                break;
             }
         }
         else if ((strcmp(arguments[0], "Math")) == 0){
             if (pid == 0){
-                execlp("./functions/Standard_Shell_functions/Math", NULL); 
+                execlp("./Compiled_files/Math", "Math", NULL); 
             } 
         }
         else if ((strcmp(arguments[0], "Logic")) == 0){
             if (pid == 0){
-                execlp("./functions/Standard_Shell_functions/Logic", NULL); 
+                execlp("./Compiled_files/Logic", "Logic", NULL); 
             }
         }
         else if ((strcmp(arguments[0], "String")) == 0){
             if (pid == 0){
-                execlp("./functions/String_Shell_functions/String", NULL); 
+                execlp("./Compiled_files/String", "String", NULL); 
             }
         }
         else{
             // Try executing a regular shell function.
             if (pid == 0){
                 if (argumentsIndex == 1){
-                    execlp(arguments[0], NULL); 
+                    execlp(arguments[0], arguments[0], NULL); 
                 }
                 else if (argumentsIndex == 2){
-                    execlp(arguments[0], arguments[1], NULL); 
+                    execlp(arguments[0], arguments[0], arguments[1], NULL); 
                 }
                 else if (argumentsIndex == 3){
-                    execlp(arguments[0], arguments[1], arguments[2], NULL); 
+                    execlp(arguments[0], arguments[0], arguments[1], arguments[2], NULL); 
                 }
                 else{
-                    execlp(arguments[0], arguments[1], arguments[2], arguments[3], NULL);
+                    execlp(arguments[0], arguments[0], arguments[1], arguments[2], arguments[3], NULL);
                 }
-                execlp(arguments[0], arguments[1], arguments[2], NULL); 
                 printf("Not Supported\n");
             }
         }
 
         wait(NULL); // Waits for the child process to end
-        
-        // Reset the index so it will not cause an out-of-bounds error.
-        argumentsIndex = 0;
+    }
+}
+
+
+void createNewDir(){
+    DIR* dir = opendir("./Commands");
+
+    if (dir){
+        closedir(dir); // Closes the file descriptor
+        printf("The directory ./Commands already exists.\n");
+    }
+    else if (errno == ENOENT){ // ENOENT in this case will say that there`s no entry for this dir, therefore we`ll create it.
+        if(mkdir("./Commands",0700) == -1){
+            printf("Making the new directory has failed.\n");
+            exit(1);
+        }
+        else{
+        printf("Commands dir created.\n");
+        }
+    }
+}
+
+void parseUserInput(char* userInput, char *arguments[], int* argumentsIndex){
+    *argumentsIndex = 0;
+
+    char* token = strtok(userInput, " ");
+
+    arguments[*argumentsIndex] = token;
+    (*argumentsIndex)++;
+
+    while (token != NULL && *argumentsIndex < MAX_ARGS){
+        arguments[*argumentsIndex] = token;
+        token = strtok(NULL, " ");
+        (*argumentsIndex)++;
     }
 }

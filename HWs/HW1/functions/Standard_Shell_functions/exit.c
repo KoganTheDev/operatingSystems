@@ -18,7 +18,7 @@ void main(){
         exit(1);
     }
     if (pid == 0){
-        execlp("./functions/Standard_Shell_functions/Goodbye", NULL);
+        execlp("./Compiled_files/Goodbye", NULL);
     }
     else{
         rmdir("./Commands");
