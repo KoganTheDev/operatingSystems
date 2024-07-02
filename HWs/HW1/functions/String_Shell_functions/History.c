@@ -35,7 +35,7 @@ void main(){
     }
 
     while (bytesRead > 0){
-        printf("%s", buffer);
+        printf("%s\n", buffer);
 
         if (bytesRead = read(historyFile, buffer, BUFFER_SIZE) == -1){
         printf("Reading from the history file has failed.\n");

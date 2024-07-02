@@ -9,6 +9,7 @@ TODO:
 #include <unistd.h>
 #include <math.h>
 #include <fcntl.h>
+#include <string.h>
 
 #define BUFFER_SIZE 1024
 
@@ -44,6 +45,4 @@ void main(int argc, char* argv[]){
     }
 
     close(fd);
-
-    return 0;
 }

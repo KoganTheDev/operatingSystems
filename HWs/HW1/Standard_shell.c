@@ -27,7 +27,7 @@ void main(int argc, char* argv[]){
     }
 
     char userInput[SIZE_OF_INPUT];
-    char* arguments[MAX_ARGS + 1]; // The last location is saved for a NULL character
+    char* arguments[MAX_ARGS];
     int argumentsIndex;
     int pid;
 
@@ -61,7 +61,7 @@ void main(int argc, char* argv[]){
         // Look for the exact match function to run
         if ((strcmp(arguments[0], "exit")) == 0){
             if (pid == 0){
-                execlp("./Compiled_files/exit", "exit", NULL);
+                execlp("./functions/Standard_Shell_functions/exit", "exit", NULL);
             }
             else{ // Parent`s clause
                 break;
@@ -69,17 +69,17 @@ void main(int argc, char* argv[]){
         }
         else if ((strcmp(arguments[0], "Math")) == 0){
             if (pid == 0){
-                execlp("./Compiled_files/Math", "Math", NULL); 
+                execlp("./functions/Standard_Shell_functions/Math", "Math", NULL); 
             } 
         }
         else if ((strcmp(arguments[0], "Logic")) == 0){
             if (pid == 0){
-                execlp("./Compiled_files/Logic", "Logic", NULL); 
+                execlp("./functions/Standard_Shell_functions/Logic", "Logic", NULL); 
             }
         }
         else if ((strcmp(arguments[0], "String")) == 0){
             if (pid == 0){
-                execlp("./Compiled_files/String", "String", NULL); 
+                execlp("./functions/Standard_Shell_functions/String", "String", NULL); 
             }
         }
         else{
@@ -103,6 +103,7 @@ void main(int argc, char* argv[]){
 
         wait(NULL); // Waits for the child process to end
     }
+    wait(NULL); // Wait for exit to end.
 }
 
 

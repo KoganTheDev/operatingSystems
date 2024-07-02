@@ -31,6 +31,6 @@ int main(int argc, char* argv[]){
         number >>= 1; // Consume the lsb.
     }
 
-    print("%d\n", count);
+    printf("%d\n", count);
     return count;
 }

@@ -44,8 +44,8 @@ double main(int argc, char* argv[]){
         return ((-b) / (2 * a)); // Special case when there`s only one solution.
     }
     else{
-        firstSolution = ((-b) + Sqrt(numInSqaureRoot)) / (2 * a);
-        secondSolution = ((-b) - Sqrt(numInSqaureRoot)) / (2 * a);
+        firstSolution = ((-b) + sqrt(numInSqaureRoot)) / (2 * a);
+        secondSolution = ((-b) - sqrt(numInSqaureRoot)) / (2 * a);
 
         if ((pid = fork()) < 0){
             printf("Creating a new process if \"Solve\" has failed.\n");

@@ -9,6 +9,10 @@ TODO:
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <fcntl.h>
+#include <sys/wait.h>
+
+void emptyDirectory();
 
 void main(){
     int pid;
@@ -18,9 +22,29 @@ void main(){
         exit(1);
     }
     if (pid == 0){
-        execlp("./Compiled_files/Goodbye", NULL);
+        execlp("./functions/Standard_Shell_functions/Goodbye", "Goodbye", NULL);
     }
     else{
+        emptyDirectory();
         rmdir("./Commands");
+        wait(NULL);
     }
+}
+
+void emptyDirectory(){
+    char* filename = "./Commands/Math/Math_Commands.txt";
+    char* filename2 = "./Commands/Logic/Logic_Commands.txt";
+    char* filename3 = "./Commands/String/String_Commands.txt";
+
+    char* mathDir = "./Commands/Math";
+    char* stringDir = "./Commands/String";
+    char* logicDir = "./Commands/Logic";
+
+    remove(filename);
+    remove(filename2);
+    remove(filename3);
+
+    rmdir(mathDir);
+    rmdir(stringDir);
+    rmdir(logicDir);
 }

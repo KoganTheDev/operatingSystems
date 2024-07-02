@@ -19,5 +19,5 @@ int main(int argc, char* argv[]){
 
     printf("%X", number); // Prints in hexa format.
 
-    return ;
+    return 1; // When the function succeeds.
 }

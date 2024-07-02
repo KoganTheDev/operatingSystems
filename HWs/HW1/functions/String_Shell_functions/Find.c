@@ -9,6 +9,7 @@ TODO:
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 
 //! TODO: Complete later
 void main(int argc, char* argv[]){
