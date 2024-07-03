@@ -1,13 +1,3 @@
-/*
-TODO: 
--> gets No Parameters.
--> Runs String_Shell
--> Creates new directory called "String" in "Commands"
--> Creates a new file called "String_Commands" in the path Commands/String
-
-this func Saves the commands given from the user for String_Shell
-
-*/
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -21,37 +11,7 @@ this func Saves the commands given from the user for String_Shell
 #define SIZE_OF_INPUT 256
 #define MAX_ARGS 5
 
-/**
- * Summary:
- * Creates a new directory if it doesn't already exist.
- *
- * Details:
- * Checks if the directory ./Commands/String exists. If it does not, creates it with read, write, and execute permissions for the owner only.
- * Prints appropriate messages for success or failure in creating the directory.
- *
- * Arguments:
- * None.
- *
- * Returns:
- * None.
- */
 void createNewDir();
-
-/**
- * Summary:
- * Parses user input into command arguments.
- *
- * Details:
- * Tokenizes the user input based on spaces and stores them in the arguments array. Null-terminates the array.
- *
- * Arguments:
- * @param userInput - (char*): The input string entered by the user.
- * @param arguments - (char*[]): Array to store parsed arguments.
- * @param argumentsIndex - (int*): Pointer to the index of arguments array.
- *
- * Returns:
- * None.
- */
 void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex);
 
 /**
@@ -143,7 +103,7 @@ int main(int argc, char* argv[]) {
                 printf("The Replace command requires exactly 3 arguments.\n");
             }
             if (pid == 0 && argumentsIndex == 4) {
-                execlp("./functions/String_Shell_functions/Replace", "Replace", arguments[1], arguments[2], arguments[3], NULL); 
+                execlp("./functions/String_Shell_functions/Replace", "Replace", sentenceForFunction, arguments[2], arguments[3], NULL); 
             } 
         } else if (strcmp(arguments[0], "Find") == 0) {
             if (argumentsIndex != 3 && pid != 0) {
@@ -250,3 +210,4 @@ void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex) {
 
     arguments[*argumentsIndex] = NULL; // Null-terminate the arguments array
 }
+

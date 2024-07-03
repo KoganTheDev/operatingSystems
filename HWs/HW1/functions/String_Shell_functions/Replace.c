@@ -1,37 +1,51 @@
-/*
-TODO:
--> Gets 3 parameters - String, word, location.
--> the function inserts the word in the given location, the thing that was there beforehand is deleted.
-
-*/
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 
-void main(int argc, char* argv[]){
+void copyWordIntoSentence(char* sentence, char* word, int location);
 
-    char* mainString = argv[1];
-    char* mainWord = argv[2];
-    int place = atoi(argv[3]);
+int main(int argc, char* argv[]) {
 
-    int stringLength = strlen(mainString);
-    int wordLength = strlen(mainWord);
-    int startCopying = 0;
+    char* sentence = argv[0];
+    char* word = argv[1];
+    int location = atoi(argv[2]);    
 
-    // Check if there are enough bits to insert the new word in its place.
-    if (stringLength < place){
-        printf("The location does`nt exist in the given string.\n");
-        exit(1);
+    copyWordIntoSentence(sentence, word, location);
+    return 0; // For a successful run.
+}
+
+
+void copyWordIntoSentence(char* sentence, char* word, int location) {
+    int sentenceLength = strlen(sentence);
+    int wordLength = strlen(word);
+
+    // Ensure the location is valid
+    if (location < 0 || location > sentenceLength) {
+        printf("Invalid location.\n");
+        return;
     }
+
+    // Create a new buffer to hold the new sentence
+    char* newSentence = (char*)malloc(sentenceLength + wordLength + 1); // +1 for the null terminator
+    if (newSentence == NULL) {
+        printf("Memory allocation failed.\n");
+        return;
+    }
+
+    // Copy the part of the sentence before the location
+    strncpy(newSentence, sentence, location);
     
-    // Calculate end index of replaced word
-    int end_index = place + wordLength;
-    int j = 0;
+    // Copy the word
+    strcpy(newSentence + location, word);
 
-    // Replace the word in the string
-    for (int i = place; i < end_index; ++i) {
-        mainString[i] = mainWord[j];
-        j++;
-    }
+    // Copy the part of the sentence after the location
+    strcpy(newSentence + location + wordLength, sentence + location);
 
+    // Copy the new sentence back into the original sentence buffer
+    strcpy(sentence, newSentence);
+
+    printf("%s\n", newSentence);
+
+    // Free the allocated memory
+    free(newSentence);
 }

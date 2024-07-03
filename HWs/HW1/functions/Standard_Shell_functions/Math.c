@@ -11,37 +11,7 @@
 #define SIZE_OF_INPUT 256
 #define MAX_ARGS 5
 
-/**
- * Summary:
- * Creates a new directory if it doesn't already exist.
- *
- * Details:
- * Checks if the directory ./Commands/Math exists. If it does not, creates it with read, write, and execute permissions for the owner only.
- * Prints appropriate messages for success or failure in creating the directory.
- *
- * Arguments:
- * None.
- *
- * Returns:
- * None.
- */
 void createNewDir();
-
-/**
- * Summary:
- * Parses user input into command arguments.
- *
- * Details:
- * Tokenizes the user input based on spaces and stores them in the arguments array. Null-terminates the array.
- *
- * Arguments:
- * @param userInput - (char*): The input string entered by the user.
- * @param arguments - (char*[]): Array to store parsed arguments.
- * @param argumentsIndex - (int*): Pointer to the index of arguments array.
- *
- * Returns:
- * None.
- */
 void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex);
 
 /**

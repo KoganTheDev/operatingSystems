@@ -17,11 +17,13 @@ void main(int argc, char* argv[]){
 
     char* file_name = argv[1];
     char buffer[BUFFER_SIZE];
+    
+    char* pathToFile = strcat("./", file_name);
 
-    int fd = open(file_name, O_RDONLY, 0544);
+    int fd = open(pathToFile, O_RDONLY, 0544);
     if (fd == -1) {
-    perror("Error opening file");
-    exit(1);
+        perror("Error opening file");
+        exit(1);
     }
 
     ssize_t bytes_read = read(fd, buffer, BUFFER_SIZE - 1);
