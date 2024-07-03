@@ -13,6 +13,7 @@ int main(int argc, char* argv[]){
     int dectoBinString[DIGITS_IN_INT] = {0};
     int i;
     int number = atoi(argv[1]);
+    int numberCopy = number;
 
     // Convert to an integer that represents number in its binary format
     for (i = DIGITS_IN_INT - 1; i >= 0; i--){
@@ -26,8 +27,12 @@ int main(int argc, char* argv[]){
     }
 
 
-    for (i = DIGITS_IN_INT -1; i >= 0; i--){
-        if (noMoreLeadingZeros){
+    for (i = 0; i < DIGITS_IN_INT; i++){
+        if (numberCopy == 0){
+            printf("0");
+            break;
+        }
+        else if (noMoreLeadingZeros){
             printf("%d", dectoBinString[i]);
         }
         else if (dectoBinString[i] == 1){

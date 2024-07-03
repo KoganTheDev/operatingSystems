@@ -12,7 +12,7 @@ int main(int argc, char* argv[]){
 
     int number = atoi(argv[1]);
 
-    printf("%X", number); // Prints in hexa format.
+    printf("%X\n", number); // Prints in hexa format.
 
     return 0; // When the function succeeds.
 }

@@ -27,6 +27,7 @@ void main(){
     else{
         emptyDirectory();
         rmdir("./Commands");
+        printf("Commands dir removed.\n");
         wait(NULL);
     }
 }

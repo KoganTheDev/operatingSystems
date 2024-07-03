@@ -34,12 +34,17 @@ int main(int argc, char* argv[]) {
     char* arguments[MAX_ARGS];
     int argumentsIndex;
     int pid, commandsForLogic;
+    DIR* dir = opendir("./Commands/Logic");
 
     createNewDir();
 
     if ((commandsForLogic = open("./Commands/Logic/Logic_Commands.txt", O_RDWR | O_CREAT, 0644)) < 0) {
         printf("Opening the file for the commands of \"Logic_shell\" has failed.\n");
         exit(1);
+    }
+
+    if (!dir){
+        printf("Logic_Commands.txt created in Commands/Logic.\n");
     }
 
     while (1) {
@@ -113,7 +118,7 @@ int main(int argc, char* argv[]) {
             if (pid == 0 && argumentsIndex == 1) {
                 execlp("./functions/Logic_Shell_functions/History", "History", NULL);
             }
-        } else {
+        } else if (pid == 0){
             printf("Not Supported\n");
         }
 

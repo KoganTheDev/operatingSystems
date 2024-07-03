@@ -72,12 +72,17 @@ int main(int argc, char* argv[]) {
     char* arguments[MAX_ARGS];
     int argumentsIndex;
     int pid, commandsForMath;
+    DIR* dir = opendir("./Commands/Math"); // Used to check if the dir already exists
 
     createNewDir();
 
     if ((commandsForMath = open("./Commands/Math/Math_Commands.txt", O_RDWR | O_CREAT, 0644)) < 0) {
         printf("Opening the file for the commands of \"Math_shell\" has failed.\n");
         exit(1);
+    }
+
+    if (!dir){
+        printf("Math_Commands.txt created in Commands/Math.\n");
     }
 
     while (1) {
@@ -151,7 +156,7 @@ int main(int argc, char* argv[]) {
             if (pid == 0 && argumentsIndex == 1) {
                 execlp("./functions/Math_Shell_functions/History", "History", NULL);
             }
-        } else {
+        } else if (pid == 0){
             printf("Not Supported\n");
         }
 
