@@ -10,11 +10,6 @@ TODO:
 
 void main(int argc, char* argv[]){
 
-    if (argc != 4){
-        printf("The function \"Replace\" needs 4 parameters.");
-        exit(1);
-    }
-
     char* mainString = argv[1];
     char* mainWord = argv[2];
     int place = atoi(argv[3]);
@@ -28,15 +23,15 @@ void main(int argc, char* argv[]){
         printf("The location does`nt exist in the given string.\n");
         exit(1);
     }
-
+    
+    // Calculate end index of replaced word
+    int end_index = place + wordLength;
     int j = 0;
-    for (int i = 0; i < stringLength; i++){
-        if (i == place){
-            startCopying = 1;
-        }
-        if (startCopying && (j < wordLength)){
-            mainString[i] = mainWord[j];
-            j++;
-        }
+
+    // Replace the word in the string
+    for (int i = place; i < end_index; ++i) {
+        mainString[i] = mainWord[j];
+        j++;
     }
+
 }

@@ -1,39 +1,53 @@
-/*
-TODO:
--> gets two parameters, fileName and a Sentence.
--> Looks for the Sentence in the file.
--> If the sentence was found  return "WIN.\n"
-
-*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
 
-//! TODO: Complete later
+#define MAX_PATH_LENGTH 1024
+
+char* findFilePath(char* filename);
+
 void main(int argc, char* argv[]){
+    char* word = argv[1];
+    char* fileName = argv[2];
 
-    if (argc != 3){
-        printf("The function \"Find\" needs 3 arguments.\n");
-        exit(1);
+    // Find the path of the text file.
+    char* textFilePath = findFilePath(fileName);
+
+    
+
+
+
+    free(textFilePath);
+}
+
+
+char* findFilePath(char* filename) {
+    FILE* pipe;
+    char command[1024];
+    char* result = (char*)malloc(MAX_PATH_LENGTH * sizeof(char));
+
+    if (result == NULL) {
+        perror("Memory allocation failed");
+        exit(EXIT_FAILURE);
     }
 
-    char* sentenceToFind = argv[2];
-    int sentenceLength = strlen(sentenceToFind);
-    char* lineRead[sentenceLength];
-    int textFile;
-    int bytesRead;
+    sprintf(command, "find / -name \"%s\" 2>/dev/null", filename);
 
-    //! need to use opendir\Readdir to locate the file.
-    if ((textFile = open(argv[1], O_RDONLY, 0)) == -1){
-        printf("Opening the file for \"Find\" has failed.\n");
-        exit(1);
+    pipe = popen(command, "r");
+    if (pipe == NULL) {
+        perror("popen");
+        exit(EXIT_FAILURE);
     }
 
-    if ((lineRead))
+    if (fgets(result, MAX_PATH_LENGTH, pipe) == NULL) {
+        strcpy(result, "File not found");
+    } else {
+        // Remove newline character if present
+        result[strcspn(result, "\n")] = 0;
+    }
 
-
-
-    close(textFile);
+    pclose(pipe);
+    return result;
 }
