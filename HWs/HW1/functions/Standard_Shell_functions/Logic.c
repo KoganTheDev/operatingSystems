@@ -8,7 +8,6 @@ TODO:
 this func Saves the commands given from the user for Logic_Shell
 
 */
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -20,15 +19,14 @@ this func Saves the commands given from the user for Logic_Shell
 #include <errno.h>
 
 #define SIZE_OF_INPUT 256
-#define MAX_ARGS 4
+#define MAX_ARGS 5
 
 void createNewDir();
 void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex);
 
-void main(int argc, char* argv[]){
-
-    if (argc != 1){
-        printf("To run the \"Logic_shell\" you need to give one argument which is \"Logic\".\n");
+int main(int argc, char* argv[]) {
+    if (argc != 1) {
+        printf("To run the \"Math_shell\" you need to give one argument which is \"Math\".\n");
         exit(1);
     }
 
@@ -38,20 +36,30 @@ void main(int argc, char* argv[]){
     int pid, commandsForLogic;
 
     createNewDir();
-    
-    if ((commandsForLogic = open("./Commands/Logic/Logic_Commands.txt", O_RDWR | O_CREAT, 0644 )) < 0){
+
+    if ((commandsForLogic = open("./Commands/Logic/Logic_Commands.txt", O_RDWR | O_CREAT, 0644)) < 0) {
         printf("Opening the file for the commands of \"Logic_shell\" has failed.\n");
         exit(1);
     }
 
-    while (1){
+    while (1) {
         printf("LogicShell > ");
         
         // Grab input from the user until you get a '\n' character.
-        if ((fgets(userInput, SIZE_OF_INPUT, stdin)) == NULL){
+        if ((fgets(userInput, SIZE_OF_INPUT, stdin)) == NULL) {
             printf("fgets in \"Standard_shell\" has failed to grab input.\n");
             exit(1);
         }
+
+        // Allocate memory for userInputForWriting
+        char* userInputForWriting = (char*) malloc(sizeof(char) * (strlen(userInput) + 1));
+        if (userInputForWriting == NULL) {
+            printf("Memory allocation failed.\n");
+            exit(1);
+        }
+
+        // Copy the user input to userInputForWriting
+        strcpy(userInputForWriting, userInput);
 
         // Remove the new line character
         userInput[strcspn(userInput, "\n")] = 0;
@@ -59,101 +67,104 @@ void main(int argc, char* argv[]){
         parseUserInput(userInput, arguments, &argumentsIndex);
 
         // Special case: the user didn`t insert input therefore allow him to try inserting once again.
-        if (argumentsIndex == 0){
+        if (argumentsIndex == 0) {
             printf("No input received.\n");
+            free(userInputForWriting);
             continue;
         }
 
-        if ((strcmp(arguments[0], "Cls")) == 0){
+        if (strcmp(arguments[0], "Cls") == 0) {
+            free(userInputForWriting);
             break;
         }
 
-        if ((pid = fork()) < 0){
-                printf("Forking has failed for the Standard_Shell.\n");
-                exit(1);
-        }
-        
-        // Look for the exact match function to run
-        if ((strcmp(arguments[0], "DectoHex")) == 0){
-            if (pid == 0){
-                execlp("./functions/Logic_Shell_functions/DectoHex", "DectoHex", NULL); 
-            } 
-        }
-        else if ((strcmp(arguments[0], "DectoBin")) == 0){
-            if (pid == 0){
-                execlp("./functions/Logic_Shell_functions/DectoBin", "DectoBin", NULL); 
-            }
-        }
-        else if ((strcmp(arguments[0], "Highbit")) == 0){
-            if (pid == 0){
-                execlp("./functions/Logic_Shell_functions/Highbit", "Highbit", NULL); 
-            }
-        }
-        else if ((strcmp(arguments[0], "History")) == 0){
-            if (pid == 0){
-                execlp("./functions/Logic_Shell_functions/History", "History", NULL);
-            }
-        }
-        else{
-            // Try executing a regular shell function.
-            if (pid == 0){
-                if (argumentsIndex == 1){
-                    execlp(arguments[0], arguments[0], NULL); 
-                }
-                else if (argumentsIndex == 2){
-                    execlp(arguments[0], arguments[0], arguments[1], NULL); 
-                }
-                else if (argumentsIndex == 3){
-                    execlp(arguments[0], arguments[0], arguments[1], arguments[2], NULL); 
-                }
-                else{
-                    execlp(arguments[0], arguments[0], arguments[1], arguments[2], arguments[3], NULL);
-                }
-                printf("Not Supported\n");
-            }
+        if ((pid = fork()) < 0) {
+            printf("Forking has failed for the Standard_Shell.\n");
+            free(userInputForWriting);
+            exit(1);
         }
 
-        if ((write(commandsForLogic, arguments[0], sizeof(arguments[0]))) == -1){
-            printf("Writing information to \"Logic_Commands\" has failed.\n");
-            exit(1);
+        // Look for the exact match function to run
+        if (strcmp(arguments[0], "DectoBin") == 0) {
+            if (argumentsIndex != 2 && pid != 0) {
+                printf("The DectoBin command requires exactly 1 arguments.\n");
+            }
+            if (pid == 0 && argumentsIndex == 2) {
+                execlp("./functions/Logic_Shell_functions/DectoBin", "DectoBin", arguments[1], NULL); 
+            } 
+        } else if (strcmp(arguments[0], "Highbit") == 0) {
+            if (argumentsIndex != 2 && pid != 0) {
+                printf("The Highbit command requires exactly 1 arguments.\n");
+            }
+            if (pid == 0 && argumentsIndex == 2) {
+                execlp("./functions/Logic_Shell_functions/Highbit", "Highbit", arguments[1], NULL); 
+            }
+        } else if (strcmp(arguments[0], "DectoHex") == 0) {
+            if (argumentsIndex != 2 && pid != 0) {
+                printf("The DectoHex command requires exactly 1 argument.\n");
+            }
+            if (pid == 0 && argumentsIndex == 2) {
+                execlp("./functions/Logic_Shell_functions/DectoHex", "DectoHex", arguments[1], NULL); 
+            }
+        } else if (strcmp(arguments[0], "History") == 0) {
+            if (argumentsIndex != 1 && pid != 0) {
+                printf("The History command requires no arguments.\n");
+            }
+            if (pid == 0 && argumentsIndex == 1) {
+                execlp("./functions/Logic_Shell_functions/History", "History", NULL);
+            }
+        } else {
+            printf("Not Supported\n");
+        }
+
+        if (pid != 0){
+            // Append a newline character to the command
+            if (write(commandsForLogic, userInputForWriting, strlen(userInputForWriting)) == -1) {
+                printf("Writing information to \"Logic_Commands\" has failed.\n");
+                free(userInputForWriting);
+                exit(1);
+            }
+            free(userInputForWriting);
+        }
+
+        // When no function ran using the child process.
+        if (pid == 0){
+            exit(0);
         }
 
         wait(NULL); // Waits for the child process to end
     }
 
     close(commandsForLogic);
+    return 0;
 }
 
-
-void createNewDir(){
+void createNewDir() {
     DIR* dir = opendir("./Commands/Logic");
 
-    if (dir){
+    if (dir) {
         closedir(dir); // Closes the file descriptor
         printf("The directory ./Commands/Logic already exists.\n");
-    }
-    else if (errno == ENOENT){ // ENOENT in this case will say that there`s no entry for this dir, therefore we`ll create it.
-        if(mkdir("./Commands/Logic",0700) == -1){
+    } else if (errno == ENOENT) { // ENOENT in this case will say that there`s no entry for this dir, therefore we`ll create it.
+        if (mkdir("./Commands/Logic", 0700) == -1) {
             printf("Making the new directory has failed.\n");
             exit(1);
-        }
-        else{
-        printf("Logic dir created in Commands dir.\n");
+        } else {
+            printf("Logic dir created in Commands dir.\n");
         }
     }
 }
 
-void parseUserInput(char* userInput, char *arguments[], int* argumentsIndex){
+void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex) {
     *argumentsIndex = 0;
 
     char* token = strtok(userInput, " ");
 
-    arguments[*argumentsIndex] = token;
-    (*argumentsIndex)++;
-
-    while (token != NULL && *argumentsIndex < MAX_ARGS){
+    while (token != NULL && *argumentsIndex < MAX_ARGS) {
         arguments[*argumentsIndex] = token;
-        token = strtok(NULL, " ");
         (*argumentsIndex)++;
+        token = strtok(NULL, " ");
     }
+
+    arguments[*argumentsIndex] = NULL; // Null-terminate the arguments array
 }

@@ -101,6 +101,11 @@ void main(int argc, char* argv[]){
             }
         }
 
+        // When the child process didn`t enter any functions.
+        if (pid == 0){
+            exit(0);
+        }
+        
         wait(NULL); // Waits for the child process to end
     }
     wait(NULL); // Wait for exit to end.

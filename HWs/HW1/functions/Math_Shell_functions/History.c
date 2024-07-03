@@ -17,31 +17,35 @@
  * None.
  *
  * Returns:
- * None.
+ * 0 - to indicate a successful run.
  */
-void main(){
-    int historyFile, bytesRead;
+int main() {
+    int historyFile;
+    ssize_t bytesRead;
     char buffer[BUFFER_SIZE];
 
-    if ((historyFile = open("./Commands/Math/Math_Commands.txt", O_RDONLY, 0)) < 0){
-        printf("Opening the file history for reading has failed.\n");
-        exit(1);
-    } 
-
-    // Read from the history file and put in inside the terminal.
-    if ((bytesRead = read(historyFile, buffer, BUFFER_SIZE)) == -1){
-        printf("Reading from the history file has failed.\n");
-        exit(1);
+    // Open the history file for reading
+    historyFile = open("./Commands/Math/Math_Commands.txt", O_RDONLY);
+    if (historyFile < 0) {
+        perror("Opening the file history for reading has failed");
+        exit(EXIT_FAILURE);
     }
 
-    while (bytesRead > 0){
-        printf("%s\n", buffer);
-
-        if (bytesRead = read(historyFile, buffer, BUFFER_SIZE) == -1){
-        printf("Reading from the history file has failed.\n");
-        exit(1);
+    // Read from the history file and output to the terminal
+    while ((bytesRead = read(historyFile, buffer, BUFFER_SIZE)) > 0) {
+        if (write(STDOUT_FILENO, buffer, bytesRead) != bytesRead) {
+            perror("Writing to the terminal has failed");
+            close(historyFile);
+            exit(EXIT_FAILURE);
         }
     }
 
+    if (bytesRead < 0) {
+        perror("Reading from the history file has failed");
+        close(historyFile);
+        exit(EXIT_FAILURE);
+    }
+
     close(historyFile);
+    return 0;
 }

@@ -4,61 +4,51 @@
 #include <math.h>
 
 /**
- * Summary:
  * Solves the quadratic equation ax^2 + bx + c = 0 and returns the solutions.
  *
  * Arguments:
- * @param a - (double type): Coefficient of x^2.
- * @param b - (double type): Coefficient of x.
- * @param c - (double type): Constant term.
+ * @param argc - (int): Number of arguments passed to the program. It should be 4.
+ * @param argv - (char*[]): Array of arguments passed to the program. Should contain the coefficients a, b, and c as strings.
+ *                   argv[1] should be the coefficient a, argv[2] should be the coefficient b, and argv[3] should be the constant term c.
  *
  * Returns:
- * @return - (double type): One of the solutions to the equation, or NAN if no real solutions exist.
+ * @return - 0 for a successful run.
  * 
- * Details:
- * The function calculates the discriminant (b^2 - 4ac) to determine the nature of the roots.
- * - If the discriminant is negative, it prints "No Sol!" and returns NAN.
- * - If the discriminant is zero, it returns the single root.
- * - If the discriminant is positive, it forks the process to calculate both roots, returning one from each process.
  */
-double main(int argc, char* argv[]){
+double main(int argc, char* argv[]) {
 
-    if (argc != 4){
-        printf("The function \"Solve\" needs 4 parameters.\n");
-        exit(1);
-    }
-    double a = atoi(argv[1]);
-    double b = atoi(argv[2]);
-    double c = atoi(argv[3]);
+    double a = atof(argv[1]);    // Coefficient of x^2
+    double b = atof(argv[2]);    // Coefficient of x
+    double c = atof(argv[3]);    // Constant term
     int pid;
     double firstSolution, secondSolution;
-    double numInSqaureRoot = b * b - 4 * a * c;
+    double discriminant = b * b - 4 * a * c;
 
-
-    if (numInSqaureRoot < 0){
+    if (discriminant < 0) {
         printf("No Sol!\n");
-        return NAN; // Returns NAN for no real solutions.
+        return 0;
     }
-    else if (numInSqaureRoot == 0){
-        printf("%0.lf\n", (-b) / (2 * a));
-        return ((-b) / (2 * a)); // Special case when there`s only one solution.
+    else if (discriminant == 0) {
+        firstSolution = (-b) / (2 * a);
+        printf("%.0lf\n", firstSolution);
+        return 0; // Represents a successful run
     }
-    else{
-        firstSolution = ((-b) + sqrt(numInSqaureRoot)) / (2 * a);
-        secondSolution = ((-b) - sqrt(numInSqaureRoot)) / (2 * a);
+    else {
+        firstSolution = (-b + sqrt(discriminant)) / (2 * a);
+        secondSolution = (-b - sqrt(discriminant)) / (2 * a);
 
-        if ((pid = fork()) < 0){
-            printf("Creating a new process if \"Solve\" has failed.\n");
+        if ((pid = fork()) < 0) {
+            printf("Creating a new process in \"Solve\" has failed.\n");
             exit(1);
         }
-        
-        if (pid != 0){
+
+        if (pid != 0) {
             printf("%.0lf\n", firstSolution);
-            return firstSolution;
+            return 0; // Represents a successful run
         }
-        else{
-            printf("%0.lf\n", secondSolution);
-            return secondSolution;
+        else {
+            printf("%.0lf\n", secondSolution);
+            return 0; // Represents a successful run
         }
     }
 }

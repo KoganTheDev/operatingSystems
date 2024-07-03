@@ -3,29 +3,28 @@
 #include <math.h>
 
 /**
- * Summary:
  * Calculates the square root of a given number and prints it.
  *
  * Arguments:
- * @param number - (double type): The number for which to calculate the square root.
+ * @param argc - (int): Number of arguments passed to the program. It should be 2.
+ * @param argv - (char*[]): Array of arguments passed to the program. Should contain the number for which square root is to be calculated as a string.
+ *                   argv[1] should be the number for which square root is to be calculated.
  *
  * Returns:
- * @return - (double type): The square root of the given number.
+ * @return - (int): 0 if successful.
+ * 
+ * Details:
+ * The function checks if the given number is negative. If it is, it prints "Math Error!" and exits.
+ * Otherwise, it calculates and prints the square root of the given number.
  */
-double main(int argc, char* argv[]){
+int main(int argc, char* argv[]) {
+    double number = atof(argv[1]); // The number for which square root is to be calculated
 
-    if (argc != 2){
-        printf("The function \"Sqrt\" needs 2 parameters.\n");
-        exit(1);
-    }
-
-    double number = atoi(argv[1]);
-
-    if (number < 0){
+    if (number < 0) {
         printf("Math Error!\n");
         exit(1);
     }
 
-    printf("%.0lf", sqrt(number));
-    return (sqrt(number));
+    printf("%.0lf\n", sqrt(number));
+    return 0; // Represents a successful run
 }

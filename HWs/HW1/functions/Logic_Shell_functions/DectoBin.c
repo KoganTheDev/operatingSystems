@@ -7,11 +7,6 @@
 
 int main(int argc, char* argv[]){
 
-    if (argc != 2){
-        printf("The function \"DectoBin\" needs 2 parameters.\n");
-        exit(1);
-    }
-
     int base10 = DIGITS_IN_INT;
     int numberAsBinary = 0;
     int noMoreLeadingZeros = 0;
