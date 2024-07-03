@@ -2,18 +2,32 @@
 #include <math.h>
 #include <stdlib.h>
 
-
 #define DIGITS_IN_INT 32
 
+/**
+ * Summary:
+ * Converts a given decimal number to its binary representation and prints the result.
+ *
+ * Details:
+ * This program takes a decimal number as input and converts it to its binary representation.
+ * It prints the binary representation of the number, removing any leading zeros.
+ *
+ * Arguments:
+ * @param argc - (int): Number of arguments passed to the program. It should be 2.
+ * @param argv - (char*[]): Array of arguments passed to the program. Should contain the decimal number as a string.
+ *                   argv[1] should be the decimal number to convert.
+ *
+ * Returns:
+ * @return - (int): The binary representation of the number in integer format.
+ */
 int main(int argc, char* argv[]){
 
     int base10 = DIGITS_IN_INT;
-    int numberAsBinary = 0;
-    int noMoreLeadingZeros = 0;
+    int numberAsBinary = 0, noMoreLeadingZeros = 0;
     int dectoBinString[DIGITS_IN_INT] = {0};
-    int i;
     int number = atoi(argv[1]);
     int numberCopy = number;
+    int i;
 
     // Convert to an integer that represents number in its binary format
     for (i = DIGITS_IN_INT - 1; i >= 0; i--){
@@ -26,7 +40,7 @@ int main(int argc, char* argv[]){
         base10 -= 1;
     }
 
-
+    // Print the binary representation, removing leading zeros
     for (i = 0; i < DIGITS_IN_INT; i++){
         if (numberCopy == 0){
             printf("0");

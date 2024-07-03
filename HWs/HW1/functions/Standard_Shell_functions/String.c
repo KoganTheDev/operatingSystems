@@ -15,24 +15,18 @@ void createNewDir();
 void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex);
 
 /**
- * Summary:
- * Main function for the String Shell program.
- *
- * Details:
- * - Ensures correct usage with one argument.
- * - Creates the necessary directory if not already present.
- * - Opens a file for storing command history.
- * - Processes user commands, forks child processes to execute specific commands, and handles errors.
- * - Writes user commands to the history file.
- *
- * Arguments:
+ * @brief Main function for the String Shell program.
+ * 
+ * @details Ensures correct usage with one argument. Creates the necessary directory if not already present.
+ *          Opens a file for storing command history. Processes user commands, forks child processes to execute specific commands, and handles errors.
+ *          Writes user commands to the history file.
+ * 
  * @param argc - (int): Number of command-line arguments.
  * @param argv - (char*[]): Array of command-line argument strings.
- *
- * Returns:
+ * 
  * @return - (int): Exit status of the program.
  */
-int main(int argc, char* argv[]) {
+    int main(int argc, char* argv[]) {
     if (argc != 1) {
         printf("To run the \"String_shell\" you need to give one argument which is \"String\".\n");
         exit(1);
@@ -103,7 +97,7 @@ int main(int argc, char* argv[]) {
                 printf("The Replace command requires exactly 3 arguments.\n");
             }
             if (pid == 0 && argumentsIndex == 4) {
-                execlp("./functions/String_Shell_functions/Replace", "Replace", sentenceForFunction, arguments[2], arguments[3], NULL); 
+                execlp("./functions/String_Shell_functions/Replace", "Replace", arguments[1], arguments[2], arguments[3], NULL); 
             } 
         } else if (strcmp(arguments[0], "Find") == 0) {
             if (argumentsIndex != 3 && pid != 0) {
@@ -131,7 +125,6 @@ int main(int argc, char* argv[]) {
         }
 
         if (pid != 0){
-            // Append a newline character to the command
             if (write(commandsForString, userInputForWriting, strlen(userInputForWriting)) == -1) {
                 printf("Writing information to \"String_Commands\" has failed.\n");
                 free(userInputForWriting);
@@ -153,18 +146,10 @@ int main(int argc, char* argv[]) {
 }
 
 /**
- * Summary:
- * Creates a new directory ./Commands/String if it does not exist.
- *
- * Details:
- * Uses opendir to check if the directory ./Commands/String exists. If not, creates it with read, write, and execute permissions for the owner only.
- * Prints appropriate messages for success or failure in creating the directory.
- *
- * Arguments:
- * None.
- *
- * Returns:
- * None.
+ * @brief Creates a new directory ./Commands/String if it does not exist.
+ * 
+ * @details Uses opendir to check if the directory ./Commands/String exists. If not, creates it with read, write, and execute permissions for the owner only.
+ *          Prints appropriate messages for success or failure in creating the directory.
  */
 void createNewDir() {
     DIR* dir = opendir("./Commands/String");
@@ -183,31 +168,65 @@ void createNewDir() {
 }
 
 /**
- * Summary:
- * Parses user input into command arguments.
- *
- * Details:
- * Tokenizes the user input based on spaces and stores them in the arguments array. Null-terminates the array.
- *
- * Arguments:
+ * @brief Parses user input into command arguments.
+ * 
+ * @details Tokenizes the user input based on spaces and handles quoted arguments.
+ * 
  * @param userInput - (char*): The input string entered by the user.
  * @param arguments - (char*[]): Array to store parsed arguments.
  * @param argumentsIndex - (int*): Pointer to the index of arguments array.
- *
- * Returns:
- * None.
  */
 void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex) {
     *argumentsIndex = 0;
+    char* token;
+    char* quote_start = NULL;
+    char* quote_end = NULL;
 
-    char* token = strtok(userInput, " ");
+    // Initial token split by space to get the command
+    token = strtok(userInput, " ");
+    if (token == NULL) return;
 
-    while (token != NULL && *argumentsIndex < MAX_ARGS) {
-        arguments[*argumentsIndex] = token;
-        (*argumentsIndex)++;
-        token = strtok(NULL, " ");
+    arguments[*argumentsIndex] = token;
+    (*argumentsIndex)++;
+
+    // Loop through the input string to find quoted parts and remaining parts
+    while ((token = strtok(NULL, " ")) != NULL) {
+        // Check if this token starts with a quote
+        if (token[0] == '"') {
+            // Find the end of the quoted string
+            quote_start = token + 1;  // Skip the initial quote
+            quote_end = strchr(quote_start, '"');
+            if (quote_end != NULL) {
+                // End quote found in the same token
+                *quote_end = '\0';
+                arguments[*argumentsIndex] = quote_start;
+                (*argumentsIndex)++;
+            } else {
+                // End quote not found, search in the remaining input
+                arguments[*argumentsIndex] = (char*) malloc(SIZE_OF_INPUT);
+                strcpy(arguments[*argumentsIndex], quote_start);
+                while ((token = strtok(NULL, " ")) != NULL) {
+                    quote_end = strchr(token, '"');
+                    if (quote_end != NULL) {
+                        // End quote found, append the rest of the string
+                        strncat(arguments[*argumentsIndex], " ", SIZE_OF_INPUT - strlen(arguments[*argumentsIndex]) - 1);
+                        strncat(arguments[*argumentsIndex], token, quote_end - token);
+                        break;
+                    } else {
+                        // End quote not found, continue appending
+                        strncat(arguments[*argumentsIndex], " ", SIZE_OF_INPUT - strlen(arguments[*argumentsIndex]) - 1);
+                        strncat(arguments[*argumentsIndex], token, SIZE_OF_INPUT - strlen(arguments[*argumentsIndex]) - 1);
+                    }
+                }
+                (*argumentsIndex)++;
+            }
+        } else {
+            arguments[*argumentsIndex] = token;
+            (*argumentsIndex)++;
+        }
+        if (*argumentsIndex >= MAX_ARGS) break;
     }
 
     arguments[*argumentsIndex] = NULL; // Null-terminate the arguments array
-}
 
+}

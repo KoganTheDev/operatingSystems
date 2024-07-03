@@ -4,7 +4,15 @@
 #include <math.h>
 
 /**
+ * Summary:
  * Solves the quadratic equation ax^2 + bx + c = 0 and returns the solutions.
+ *
+ * Details:
+ * Converts the provided coefficients a, b, and c from string arguments to double,
+ * computes the discriminant, and finds the roots of the equation based on the value of the discriminant.
+ * If the discriminant is negative, prints "No Sol!" indicating no real solutions.
+ * If the discriminant is zero, prints the single solution.
+ * If the discriminant is positive, forks a new process to print both solutions.
  *
  * Arguments:
  * @param argc - (int): Number of arguments passed to the program. It should be 4.
@@ -12,16 +20,15 @@
  *                   argv[1] should be the coefficient a, argv[2] should be the coefficient b, and argv[3] should be the constant term c.
  *
  * Returns:
- * @return - 0 for a successful run.
- * 
+ * @return - (int): Returns 0 to indicate successful execution. Prints the solutions to the standard output.
  */
 double main(int argc, char* argv[]) {
+    int pid;
+    double firstSolution, secondSolution;
 
     double a = atof(argv[1]);    // Coefficient of x^2
     double b = atof(argv[2]);    // Coefficient of x
     double c = atof(argv[3]);    // Constant term
-    int pid;
-    double firstSolution, secondSolution;
     double discriminant = b * b - 4 * a * c;
 
     if (discriminant < 0) {

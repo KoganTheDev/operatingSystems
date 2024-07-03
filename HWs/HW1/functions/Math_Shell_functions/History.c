@@ -17,7 +17,7 @@
  * None.
  *
  * Returns:
- * 0 - to indicate a successful run.
+ * @return - (int): 0 to indicate a successful run.
  */
 int main() {
     int historyFile;

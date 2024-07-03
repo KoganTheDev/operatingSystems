@@ -1,8 +1,3 @@
-//TODO: insert code specifically main with documentation
-// Will support any Linux command on regular shell that can handle up to 3
-// parameters.
-
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -16,9 +11,24 @@
 #define SIZE_OF_INPUT 256
 #define MAX_ARGS 4
 
+// Function declarations
 void createNewDir();
 void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex);
 
+/**
+ * @brief Main function for the Standard Shell program.
+ *
+ * @details
+ * - Ensures correct usage with one argument.
+ * - Creates the necessary directory if not already present.
+ * - Processes user commands, forks child processes to execute specific commands, and handles errors.
+ * - Supports built-in commands like exit, Math, Logic, and String.
+ * - Executes regular shell commands with varying numbers of arguments.
+ *
+ * @param argc Number of command-line arguments.
+ * @param argv Array of command-line argument strings.
+ * @return Exit status of the program.
+ */
 void main(int argc, char* argv[]){
 
     if (argc != 1){
@@ -31,8 +41,10 @@ void main(int argc, char* argv[]){
     int argumentsIndex;
     int pid;
 
+    // Ensure the directory ./Commands exists
     createNewDir();
     
+    // Main command processing loop
     while (1){
         printf("StandardShell > ");
         
@@ -45,6 +57,7 @@ void main(int argc, char* argv[]){
         // Remove the new line character
         userInput[strcspn(userInput, "\n")] = 0;
 
+        // Parse user input into arguments array
         parseUserInput(userInput, arguments, &argumentsIndex);
 
         // Special case: the user didn`t insert input therefore allow him to try inserting once again.
@@ -53,6 +66,7 @@ void main(int argc, char* argv[]){
             continue;
         }
 
+        // Fork a child process to execute the command.
         if ((pid = fork()) < 0){
                 printf("Forking has failed for the Standard_Shell.\n");
                 exit(1);
@@ -101,7 +115,7 @@ void main(int argc, char* argv[]){
             }
         }
 
-        // When the child process didn`t enter any functions.
+        // Exit the child process if a function was executed
         if (pid == 0){
             exit(0);
         }
@@ -111,7 +125,16 @@ void main(int argc, char* argv[]){
     wait(NULL); // Wait for exit to end.
 }
 
-
+/**
+ * @brief Creates a new directory ./Commands if it does not exist.
+ *
+ * @details
+ * Uses opendir to check if the directory ./Commands exists. If not, creates it with read, write, and execute permissions for the owner only.
+ * Prints appropriate messages for success or failure in creating the directory.
+ *
+ * @param None.
+ * @return None.
+ */
 void createNewDir(){
     DIR* dir = opendir("./Commands");
 
@@ -130,6 +153,17 @@ void createNewDir(){
     }
 }
 
+/**
+ * @brief Parses user input into command arguments.
+ *
+ * @details
+ * Tokenizes the user input based on spaces and stores them in the arguments array. Null-terminates the array.
+ *
+ * @param userInput The input string entered by the user.
+ * @param arguments Array to store parsed arguments.
+ * @param argumentsIndex Pointer to the index of arguments array.
+ * @return None.
+ */
 void parseUserInput(char* userInput, char *arguments[], int* argumentsIndex){
     *argumentsIndex = 0;
 

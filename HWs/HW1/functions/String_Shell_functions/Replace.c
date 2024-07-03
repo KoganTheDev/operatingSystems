@@ -2,50 +2,76 @@
 #include <string.h>
 #include <stdlib.h>
 
-void copyWordIntoSentence(char* sentence, char* word, int location);
+void replaceWordInSentence(char* sentence, char* word, int location);
 
+/**
+ * Summary:
+ * Main function entry point.
+ *
+ * Details:
+ * Validates command-line arguments, calls replaceWordInSentence() to modify the sentence,
+ * and prints the modified sentence to standard output.
+ *
+ * Arguments:
+ * @param argc - (int): Number of command-line arguments.
+ * @param argv - (char*[]): Array of command-line argument strings.
+ *
+ * Returns:
+ * @return - (int): Exit status of the program. Returns 0 for successful execution.
+ */
 int main(int argc, char* argv[]) {
+    if (argc != 4) {
+        fprintf(stderr, "Usage: %s <sentence> <word> <location>\n", argv[0]);
+        return 1;
+    }
 
-    char* sentence = argv[0];
-    char* word = argv[1];
-    int location = atoi(argv[2]);    
+    char* sentence = argv[1];
+    char* word = argv[2];
+    int location = atoi(argv[3]);
 
-    copyWordIntoSentence(sentence, word, location);
-    return 0; // For a successful run.
+    replaceWordInSentence(sentence, word, location);
+
+    printf("%s\n", sentence); // Print the modified sentence
+    return 0;
 }
 
-
-void copyWordIntoSentence(char* sentence, char* word, int location) {
+/**
+ * Summary:
+ * Replaces a word in a sentence at a specified location.
+ *
+ * Details:
+ * Modifies the input sentence by replacing a substring starting at the specified location with the given word.
+ * Ensures the location is within the bounds of the sentence length and performs the replacement in-place.
+ * If the location is invalid, prints an error message and exits.
+ *
+ * Arguments:
+ * @param sentence - (char*): The sentence in which the word will be replaced.
+ * @param word - (char*): The word to replace in the sentence.
+ * @param location - (int): The 1-based index indicating the position in the sentence to start replacing.
+ *
+ * Returns:
+ * None.
+ */
+void replaceWordInSentence(char* sentence, char* word, int location) {
     int sentenceLength = strlen(sentence);
     int wordLength = strlen(word);
 
     // Ensure the location is valid
-    if (location < 0 || location > sentenceLength) {
+    if (location < 1 || location > sentenceLength) {
         printf("Invalid location.\n");
-        return;
+        exit(1);
     }
 
-    // Create a new buffer to hold the new sentence
-    char* newSentence = (char*)malloc(sentenceLength + wordLength + 1); // +1 for the null terminator
-    if (newSentence == NULL) {
-        printf("Memory allocation failed.\n");
-        return;
-    }
+    // Calculate the starting index of the word to replace
+    char* startReplace = sentence + location - 1; // Adjust for 1-based index
 
-    // Copy the part of the sentence before the location
-    strncpy(newSentence, sentence, location);
-    
-    // Copy the word
-    strcpy(newSentence + location, word);
+    // Calculate the ending index of the word to replace
+    char* endReplace = startReplace + wordLength;
 
-    // Copy the part of the sentence after the location
-    strcpy(newSentence + location + wordLength, sentence + location);
+    // Calculate the remaining part of the sentence after the replaced word
+    char* remaining = endReplace;
 
-    // Copy the new sentence back into the original sentence buffer
-    strcpy(sentence, newSentence);
-
-    printf("%s\n", newSentence);
-
-    // Free the allocated memory
-    free(newSentence);
+    // Perform the replacement in-place
+    strncpy(startReplace, word, wordLength);
+    strcpy(startReplace + wordLength, remaining);
 }

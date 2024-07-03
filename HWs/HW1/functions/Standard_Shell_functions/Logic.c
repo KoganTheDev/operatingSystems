@@ -14,6 +14,18 @@
 void createNewDir();
 void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex);
 
+/**
+ * @brief Main function for the Logic Shell program.
+ * 
+ * @details Ensures correct usage with one argument. Creates the necessary directory if not already present.
+ *          Opens a file for storing command history. Processes user commands, forks child processes to execute specific commands, and handles errors.
+ *          Writes user commands to the history file.
+ * 
+ * @param argc - (int): Number of command-line arguments.
+ * @param argv - (char*[]): Array of command-line argument strings.
+ * 
+ * @return - (int): Exit status of the program.
+ */
 int main(int argc, char* argv[]) {
     if (argc != 1) {
         printf("To run the \"Math_shell\" you need to give one argument which is \"Math\".\n");
@@ -134,6 +146,12 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
+/**
+ * @brief Creates a new directory ./Commands/Logic if it does not exist.
+ * 
+ * @details Uses opendir to check if the directory ./Commands/Logic exists. If not, creates it with read, write, and execute permissions for the owner only.
+ *          Prints appropriate messages for success or failure in creating the directory.
+ */
 void createNewDir() {
     DIR* dir = opendir("./Commands/Logic");
 
@@ -150,6 +168,15 @@ void createNewDir() {
     }
 }
 
+/**
+ * @brief Parses user input into command arguments.
+ * 
+ * @details Tokenizes the user input based on spaces and stores them in the arguments array. Null-terminates the array.
+ * 
+ * @param userInput - (char*): The input string entered by the user.
+ * @param arguments - (char*[]): Array to store parsed arguments.
+ * @param argumentsIndex - (int*): Pointer to the index of arguments array.
+ */
 void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex) {
     *argumentsIndex = 0;
 

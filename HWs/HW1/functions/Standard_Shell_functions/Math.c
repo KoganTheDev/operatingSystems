@@ -11,26 +11,23 @@
 #define SIZE_OF_INPUT 256
 #define MAX_ARGS 5
 
+// Function declarations
 void createNewDir();
 void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex);
 
 /**
- * Summary:
- * Main function for the Math Shell program.
+ * @brief Main function for the Math Shell program.
  *
- * Details:
+ * @details
  * - Ensures correct usage with one argument.
  * - Creates the necessary directory if not already present.
  * - Opens a file for storing command history.
  * - Processes user commands, forks child processes to execute specific commands, and handles errors.
  * - Writes user commands to the history file.
  *
- * Arguments:
- * @param argc - (int): Number of command-line arguments.
- * @param argv - (char*[]): Array of command-line argument strings.
- *
- * Returns:
- * @return - (int): Exit status of the program.
+ * @param argc Number of command-line arguments.
+ * @param argv Array of command-line argument strings.
+ * @return Exit status of the program.
  */
 int main(int argc, char* argv[]) {
     if (argc != 1) {
@@ -44,8 +41,10 @@ int main(int argc, char* argv[]) {
     int pid, commandsForMath;
     DIR* dir = opendir("./Commands/Math"); // Used to check if the dir already exists
 
+    // Ensure the directory ./Commands/Math exists
     createNewDir();
 
+    // Open or create file for storing command history
     if ((commandsForMath = open("./Commands/Math/Math_Commands.txt", O_RDWR | O_CREAT, 0644)) < 0) {
         printf("Opening the file for the commands of \"Math_shell\" has failed.\n");
         exit(1);
@@ -55,6 +54,7 @@ int main(int argc, char* argv[]) {
         printf("Math_Commands.txt created in Commands/Math.\n");
     }
 
+    // Main command processing loop
     while (1) {
         printf("MathShell > ");
         
@@ -77,6 +77,7 @@ int main(int argc, char* argv[]) {
         // Remove the new line character
         userInput[strcspn(userInput, "\n")] = 0;
 
+        // Parse user input into arguments array
         parseUserInput(userInput, arguments, &argumentsIndex);
 
         // Special case: the user didn't insert input therefore allow him to try inserting once again.
@@ -86,11 +87,13 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
+        // Check if the command is Cls to break out of the loop
         if (strcmp(arguments[0], "Cls") == 0) {
             free(userInputForWriting);
             break;
         }
 
+        // Fork a child process to execute the command
         if ((pid = fork()) < 0) {
             printf("Forking has failed for the Standard_Shell.\n");
             free(userInputForWriting);
@@ -130,8 +133,8 @@ int main(int argc, char* argv[]) {
             printf("Not Supported\n");
         }
 
+        // Write user command to the history file
         if (pid != 0){
-            // Append a newline character to the command
             if (write(commandsForMath, userInputForWriting, strlen(userInputForWriting)) == -1) {
                 printf("Writing information to \"Math_Commands\" has failed.\n");
                 free(userInputForWriting);
@@ -140,7 +143,7 @@ int main(int argc, char* argv[]) {
             free(userInputForWriting);
         }
 
-        // When no function ran using the child process.
+        // Exit the child process if a function was executed
         if (pid == 0){
             exit(0);
         }
@@ -153,18 +156,14 @@ int main(int argc, char* argv[]) {
 }
 
 /**
- * Summary:
- * Creates a new directory ./Commands/Math if it does not exist.
+ * @brief Creates a new directory ./Commands/Math if it does not exist.
  *
- * Details:
+ * @details
  * Uses opendir to check if the directory ./Commands/Math exists. If not, creates it with read, write, and execute permissions for the owner only.
  * Prints appropriate messages for success or failure in creating the directory.
  *
- * Arguments:
- * None.
- *
- * Returns:
- * None.
+ * @param None.
+ * @return None.
  */
 void createNewDir() {
     DIR* dir = opendir("./Commands/Math");
@@ -183,19 +182,15 @@ void createNewDir() {
 }
 
 /**
- * Summary:
- * Parses user input into command arguments.
+ * @brief Parses user input into command arguments.
  *
- * Details:
- * Tokenizes the user input based on spaces and stores them in the arguments array. Null-terminates the array.
+ * @details
+ * Tokenizes the user input based on spaces and handles quoted arguments.
  *
- * Arguments:
- * @param userInput - (char*): The input string entered by the user.
- * @param arguments - (char*[]): Array to store parsed arguments.
- * @param argumentsIndex - (int*): Pointer to the index of arguments array.
- *
- * Returns:
- * None.
+ * @param userInput The input string entered by the user.
+ * @param arguments Array to store parsed arguments.
+ * @param argumentsIndex Pointer to the index of arguments array.
+ * @return None.
  */
 void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex) {
     *argumentsIndex = 0;
