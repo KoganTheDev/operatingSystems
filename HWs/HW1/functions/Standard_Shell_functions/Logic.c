@@ -28,7 +28,7 @@ void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex);
  */
 int main(int argc, char* argv[]) {
     if (argc != 1) {
-        printf("To run the \"Math_shell\" you need to give one argument which is \"Math\".\n");
+        printf("To run the \"Logic_shell\" you need to give one argument which is \"Logic\".\n");
         exit(1);
     }
 
@@ -45,6 +45,8 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
+    lseek(commandsForLogic, 0, SEEK_END); // Move the file pointer to the end so it doesn't rewrite data.
+
     if (!dir){
         printf("Logic_Commands.txt created in Commands/Logic.\n");
     }
@@ -54,7 +56,7 @@ int main(int argc, char* argv[]) {
         
         // Grab input from the user until you get a '\n' character.
         if ((fgets(userInput, SIZE_OF_INPUT, stdin)) == NULL) {
-            printf("fgets in \"Standard_shell\" has failed to grab input.\n");
+            printf("fgets in \"Logic_shell\" has failed to grab input.\n");
             exit(1);
         }
 
@@ -73,7 +75,7 @@ int main(int argc, char* argv[]) {
 
         parseUserInput(userInput, arguments, &argumentsIndex);
 
-        // Special case: the user didn`t insert input therefore allow him to try inserting once again.
+        // Special case: the user didn't insert input therefore allow him to try inserting once again.
         if (argumentsIndex == 0) {
             printf("No input received.\n");
             free(userInputForWriting);
@@ -81,12 +83,18 @@ int main(int argc, char* argv[]) {
         }
 
         if (strcmp(arguments[0], "Cls") == 0) {
-            free(userInputForWriting);
-            break;
-        }
-
-        if ((pid = fork()) < 0) {
-            printf("Forking has failed for the Standard_Shell.\n");
+            if (pid != 0) {
+                // Special case write Cls to the commands
+                if (write(commandsForLogic, userInputForWriting, strlen(userInputForWriting)) == -1) {
+                    printf("Writing information to \"Logic_Commands\" has failed.\n");
+                    free(userInputForWriting);
+                    exit(1);
+                }
+                free(userInputForWriting);
+                break; // Exit the loop after writing "Cls"
+            }
+        } else if ((pid = fork()) < 0) {
+            printf("Forking has failed for the Logic_Shell.\n");
             free(userInputForWriting);
             exit(1);
         }
@@ -125,11 +133,12 @@ int main(int argc, char* argv[]) {
         }
 
         if (pid != 0){
-            // Append a newline character to the command
-            if (write(commandsForLogic, userInputForWriting, strlen(userInputForWriting)) == -1) {
-                printf("Writing information to \"Logic_Commands\" has failed.\n");
-                free(userInputForWriting);
-                exit(1);
+            if (strcmp(arguments[0], "Cls") != 0) {
+                if (write(commandsForLogic, userInputForWriting, strlen(userInputForWriting)) == -1) {
+                    printf("Writing information to \"Logic_Commands\" has failed.\n");
+                    free(userInputForWriting);
+                    exit(1);
+                }
             }
             free(userInputForWriting);
         }
@@ -158,7 +167,7 @@ void createNewDir() {
     if (dir) {
         closedir(dir); // Closes the file descriptor
         printf("The directory ./Commands/Logic already exists.\n");
-    } else if (errno == ENOENT) { // ENOENT in this case will say that there`s no entry for this dir, therefore we`ll create it.
+    } else if (errno == ENOENT) { // ENOENT in this case will say that there's no entry for this dir, therefore we'll create it.
         if (mkdir("./Commands/Logic", 0700) == -1) {
             printf("Making the new directory has failed.\n");
             exit(1);

@@ -26,7 +26,7 @@ void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex);
  * 
  * @return - (int): Exit status of the program.
  */
-    int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {
     if (argc != 1) {
         printf("To run the \"String_shell\" you need to give one argument which is \"String\".\n");
         exit(1);
@@ -44,6 +44,8 @@ void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex);
         printf("Opening the file for the commands of \"String_shell\" has failed.\n");
         exit(1);
     }
+
+    lseek(commandsForString, 0, SEEK_END); // Move the file pointer to the end so it doesn`t rewrite data.
 
     if (!dir){
         printf("string_Commands.txt created in Commands/String.\n");
@@ -80,10 +82,6 @@ void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex);
             continue;
         }
 
-        if (strcmp(arguments[0], "Cls") == 0) {
-            free(userInputForWriting);
-            break;
-        }
 
         if ((pid = fork()) < 0) {
             printf("Forking has failed for the Standard_Shell.\n");
@@ -91,8 +89,20 @@ void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex);
             exit(1);
         }
 
+
         // Look for the exact match function to run
-        if (strcmp(arguments[0], "Replace") == 0) {
+        if (strcmp(arguments[0], "Cls") == 0) {
+            if (pid != 0) {
+                // Special case write Cls to the commands
+                if (write(commandsForString, userInputForWriting, strlen(userInputForWriting)) == -1) {
+                    printf("Writing information to \"String_Commands\" has failed.\n");
+                    free(userInputForWriting);
+                    exit(1);
+                }
+                free(userInputForWriting);
+                break; // Exit the loop after writing "Cls"
+            }
+        } else if (strcmp(arguments[0], "Replace") == 0) {
             if (argumentsIndex != 4 && pid != 0) {
                 printf("The Replace command requires exactly 3 arguments.\n");
             }
@@ -124,11 +134,13 @@ void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex);
             printf("Not Supported\n");
         }
 
-        if (pid != 0){
-            if (write(commandsForString, userInputForWriting, strlen(userInputForWriting)) == -1) {
-                printf("Writing information to \"String_Commands\" has failed.\n");
-                free(userInputForWriting);
-                exit(1);
+        if (pid != 0) {
+            if (strcmp(arguments[0], "Cls") != 0) {
+                if (write(commandsForString, userInputForWriting, strlen(userInputForWriting)) == -1) {
+                    printf("Writing information to \"String_Commands\" has failed.\n");
+                    free(userInputForWriting);
+                    exit(1);
+                }
             }
             free(userInputForWriting);
         }
@@ -228,5 +240,4 @@ void parseUserInput(char* userInput, char* arguments[], int* argumentsIndex) {
     }
 
     arguments[*argumentsIndex] = NULL; // Null-terminate the arguments array
-
 }
