@@ -21,3 +21,23 @@
 *.pdf
 *.docx
 *.txt
+
+
+# Ignore specific files.
+Standard_shell
+Find
+History
+PrintFile
+Replace
+exit
+Goodbye
+Logic
+Math
+String
+Power
+Solve
+Sqrt
+DectoBin
+DectoHex
+Highbit
+History
