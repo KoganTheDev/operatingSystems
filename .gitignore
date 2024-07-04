@@ -21,6 +21,8 @@
 *.pdf
 *.docx
 *.txt
+*.odt
+*.odt#
 
 
 # Ignore specific files.
