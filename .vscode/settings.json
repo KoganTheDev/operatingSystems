@@ -1,5 +1,6 @@
 {
     "files.associations": {
-        "delete": "c"
+        "delete": "c",
+        "wait.h": "c"
     }
 }
