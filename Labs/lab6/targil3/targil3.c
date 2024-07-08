@@ -5,10 +5,22 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-int iterations = 5;
+// Global Variables
+int iterations = 5; // Number of iterations each thread will perform.
 
-void* f(void* p); // Declaration
+// Function Declarations
+void* f(void* p);
 
+/**
+ * @brief The main function that creates two child processes, each with three threads, and waits for them to complete.
+ * 
+ * @param argc The number of command-line arguments.
+ * @param argv The array of command-line arguments.
+ * @return int Returns 0 on successful completion.
+ * 
+ * This function does not expect any command-line arguments. It forks two child processes, and each child process creates three threads.
+ * The parent process waits for both child processes to complete.
+ */
 int main(int argc, char* argv[]) {
     if (argc != 1) {
         printf("ERROR; no parameters are needed\n");
@@ -16,10 +28,10 @@ int main(int argc, char* argv[]) {
     }
 
     int i;
-    int sidori1[3] = {0, 1, 2};
-    int sidori2[3] = {0, 1, 2};
-    pthread_t id1[3]; // for child number 1
-    pthread_t id2[3]; // for child number 2
+    int sidori1[3] = {0, 1, 2}; // Array for thread arguments in first child process.
+    int sidori2[3] = {0, 1, 2}; // Array for thread arguments in second child process.
+    pthread_t id1[3]; // Thread IDs for first child process.
+    pthread_t id2[3]; // Thread IDs for second child process.
     pid_t pid1, pid2;
 
     // First fork
@@ -78,6 +90,16 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
+/**
+ * @brief Function executed by each thread to perform iterations with time measurements.
+ * 
+ * @param p Pointer to the unique integer identifier for the thread.
+ * @return void* Always returns NULL.
+ * 
+ * This function performs a specified number of iterations (`iterations`). In each iteration, it records the start time,
+ * performs a sleep operation, records the end time, and calculates the elapsed time. It then prints the start time,
+ * end time, and elapsed time for each iteration.
+ */
 void* f(void* p) {
     int mynum = *((int*)p);
     struct timeval t1, t2;
