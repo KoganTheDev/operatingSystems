@@ -9,37 +9,37 @@ void* f(void* p); // declaration
 
 int main(int argc, char* argv[]){
 
-if (argc != 2) {
-	printf("ERROR; please enter 1 parameter\n");
-	exit(1);
-}
+	if (argc != 2) {
+		printf("ERROR; please enter 1 parameter\n");
+		exit(1);
+	}
 
-int i;
-int N = atoi(argv[1]);
-int sidori[N];
-pthread_t id[N];
+	int i;
+	int N = atoi(argv[1]);
+	int sidori[N];
+	pthread_t id[N];
 
     // Initialize sidori array with unique values
     for (i = 0; i < N; i++) {
         sidori[i] = i;
     }
 
-for (i = 0; i < N; i++) {
-	if (pthread_create(&id[i], NULL, f, (void*)&sidori[i]) != 0) {
-            perror("pthread_create");
-            exit(1);
-        }
-}
-
-for (i = 0; i < N; i++) {
-	if (pthread_join(id[i], NULL) != 0) {
-            perror("pthread_join");
-            exit(1);
+	for (i = 0; i < N; i++) {
+		if (pthread_create(&id[i], NULL, f, (void*)&sidori[i]) != 0) {
+	            perror("pthread_create");
+    	        exit(1);
+        	}
 	}
-}
 
-return 0;
-}
+	for (i = 0; i < N; i++) {
+		if (pthread_join(id[i], NULL) != 0) {
+        	    perror("pthread_join");
+            	exit(1);
+		}
+	}	
+
+	return 0;
+	}
 
 void* f(void* p) {
 	int mynum = *((int*)p);
