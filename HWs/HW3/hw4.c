@@ -45,7 +45,7 @@ int main(int argc,char* argv[]){
     
     // Initialize the semaphores.
     sem_init(&semForEnteringTheLibrary, 0, N);
-    sem_init(&semFreeLibrarian, 0, 3); // Initially there are 3 free librarians
+    sem_init(&semFreeLibrarian, 0, 3); // Initialize the semaphore for the librarians.
     sem_init(&semFreeCustomers, 0 , 0); // No customers initially available
     sem_init(&semFreeChairToSitOn, 0, K); // K chairs initially available
 
@@ -101,17 +101,15 @@ void* mainFunctionForCustomerThreads(void* threadNumber){
     while(1){ 
         sem_getvalue(&semForEnteringTheLibrary, &placeLeftInTheLibrary);
 
-        if (placeLeftInTheLibrary > 0){
-            printf("I`m Reader #%d, I got into the library.\n", (threadID + 1));
-        }
-        else{
+        if (placeLeftInTheLibrary == 0){
             printf("I`m Reader #%d, I`m out of library.\n", (threadID + 1));
             continue;
         }
         
         // "Library entrance".
         sem_wait(&semForEnteringTheLibrary); // Keep the customers outside if there`s no more place for new customers.
-        
+        printf("I`m Reader #%d, I got into the library.\n", (threadID + 1));
+
         while(1){
             sem_getvalue(&semFreeLibrarian, &availableLibrarians);
             if (availableLibrarians > 0){
@@ -172,7 +170,6 @@ void* mainFunctionForCustomerThreads(void* threadNumber){
         sem_post(&semFreeCustomers);
         sem_post(&semForEnteringTheLibrary); // Customer left the library so there`s one more room for someone to enter.
         printf("I`m Reader #%d, I`ve finished.\n", (threadID + 1));
-        
     }
 }
 
