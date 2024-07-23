@@ -90,31 +90,19 @@ int main(int argc, char* argv[]) {
 void* mainFunctionForCustomerThreads(void* threadNumber) {
     Node* customersSittingInAChair = NULL;
     Node* customersLookingForInformation = NULL;
-    Node* outsideLinkedList = NULL;
     int threadID = *(int*)threadNumber;
     int placeLeftInTheLibrary;
     int availableLibrarians;
     int availableChairs;
-    int customerWaitingOutside;
+
 
     while (1) {
         sem_getvalue(&semForEnteringTheLibrary, &placeLeftInTheLibrary);
 
-        if (placeLeftInTheLibrary == 0) { // create a queue for managing threads
-            if (outsideLinkedList == NULL){
-                outsideLinkedList = initLinkedList(threadID);
-            }
-            else{
-                outsideLinkedList = addNodeToLinkedList(outsideLinkedList ,threadID);
-            }
+        if (placeLeftInTheLibrary == 0) {
             printf("I'm Reader #%d, I'm out of library.\n", (threadID + 1));
             sem_wait(&semCustomerOutside);
-            // As soon as someone gets through.
-            customerWaitingOutside = grabTailID(outsideLinkedList);
-            removeTailFromTheLinkedList(&outsideLinkedList);
         }
-
-        
 
         sem_wait(&semForEnteringTheLibrary);
         printf("I'm Reader #%d, I got into the library.\n", (threadID + 1));
@@ -149,6 +137,7 @@ void* mainFunctionForCustomerThreads(void* threadNumber) {
                     sem_post(&semForEnteringTheLibrary);
                     sem_post(&semCustomerOutside);
                     printf("I'm Reader #%d, I've finished.\n", (threadID + 1));
+                    
                     break;
                 }
             } else {
