@@ -19,7 +19,7 @@ void* mainFunctionForLibrarianThreads(void* threadIDNumber);
 // Linked List functions
 Node* initLinkedList(int threadID);
 Node* addNodeToLinkedList(Node* root, int threadId);
-void removeTailFromTheLinkedList(Node* root);
+void removeTailFromTheLinkedList(Node** root);
 int grabTailID(Node* linkedList);
 
 int N = 10; // Number of customer threads
@@ -28,13 +28,12 @@ int K = 4;  // Number of chairs in the library waiting area
 // Semaphores for synchronization
 sem_t semForEnteringTheLibrary; // Controls library entry
 sem_t semFreeLibrarian;         // Tracks available librarians
-sem_t semFreeCustomers;         // Signals availability of customers
-sem_t semFreeChairToSitOn;      // Manages free chairs for waiting customers
+sem_t semFreeCustomers; // Signals availability of customers
+sem_t semFreeChairToSitOn;   // Manages free chairs for waiting customers
 
 
 int main(int argc,char* argv[]){
 
-    // Command line argument check
     if (argc != 1){
         printf("The program receives no parameters but its name.\n");
         exit(1);
@@ -45,9 +44,9 @@ int main(int argc,char* argv[]){
     
     // Initialize the semaphores.
     sem_init(&semForEnteringTheLibrary, 0, N);
-    sem_init(&semFreeLibrarian, 0, 3); // Initialize the semaphore for the librarians.
-    sem_init(&semFreeCustomers, 0 , 0); // No customers initially available
-    sem_init(&semFreeChairToSitOn, 0, K); // K chairs initially available
+    sem_init(&semFreeLibrarian, 0, 3); // Initially there are 3 free librarians
+    sem_init(&semFreeCustomers, 0 , 0);
+    sem_init(&semFreeChairToSitOn, 0, K); 
 
     // Initialize the numbers in the array named thread_number.
     for (i = 0; i < N + 2; i++){
@@ -101,21 +100,22 @@ void* mainFunctionForCustomerThreads(void* threadNumber){
     while(1){ 
         sem_getvalue(&semForEnteringTheLibrary, &placeLeftInTheLibrary);
 
-        if (placeLeftInTheLibrary == 0){
+        if (placeLeftInTheLibrary){
+            printf("I`m Reader #%d, I got into the library.\n", (threadID + 1));
+        }
+        else{
             printf("I`m Reader #%d, I`m out of library.\n", (threadID + 1));
             continue;
         }
         
         // "Library entrance".
         sem_wait(&semForEnteringTheLibrary); // Keep the customers outside if there`s no more place for new customers.
-        printf("I`m Reader #%d, I got into the library.\n", (threadID + 1));
-
+        
         while(1){
             sem_getvalue(&semFreeLibrarian, &availableLibrarians);
             if (availableLibrarians > 0){
                 sem_wait(&semFreeLibrarian);
                 printf("I`m Reader #%d, I`m speaking with a librarian.\n", (threadID + 1));
-                // Customer is done, so exit the library loop and try entering again
                 break;
             }
             else{
@@ -137,7 +137,7 @@ void* mainFunctionForCustomerThreads(void* threadNumber){
                         sem_getvalue(&semFreeLibrarian, &availableLibrarians);
                         if (availableLibrarians > 0 && (grabTailID(customersSittingInAChair) == threadID)){
                             // Grab the customer who waited for a the longest time so they can meet with the librarian.
-                            removeTailFromTheLinkedList(customersSittingInAChair);
+                            removeTailFromTheLinkedList(&customersSittingInAChair);
                             
                             sem_post(&semFreeChairToSitOn);
 
@@ -155,10 +155,9 @@ void* mainFunctionForCustomerThreads(void* threadNumber){
                         printf("I`m reader #%d, I`m reading a book.\n", (threadID + 1));
                         
                         while(1){
-                            sem_getvalue(&semFreeChairToSitOn, &availableChairs);
-
-                            if ((availableChairs != 0) && ((grabTailID(customersLookingForInformation)) == threadID)){
-                                removeTailFromTheLinkedList(customersLookingForInformation);
+                            if (grabTailID(customersLookingForInformation) == threadID){
+                                sem_wait(&semFreeChairToSitOn); //! check the other location of semFreeChairs
+                                removeTailFromTheLinkedList(&customersLookingForInformation);
                                 break;
                             }
                         }
@@ -170,6 +169,7 @@ void* mainFunctionForCustomerThreads(void* threadNumber){
         sem_post(&semFreeCustomers);
         sem_post(&semForEnteringTheLibrary); // Customer left the library so there`s one more room for someone to enter.
         printf("I`m Reader #%d, I`ve finished.\n", (threadID + 1));
+        
     }
 }
 
@@ -201,28 +201,26 @@ Node* addNodeToLinkedList(Node* root, int threadId){
     return newRoot;
 }
 
-void removeTailFromTheLinkedList(Node* root){
-    Node* currentNode = root;
+void removeTailFromTheLinkedList(Node** root) {
+    Node* currentNode = *root;
     Node* previousNode = NULL;
 
-    // In a case when trying to remove an empty linked list.
-    if (currentNode == NULL){
-        return ;
+    if (currentNode == NULL) {
+        return;
     }
 
-    while (currentNode->next != NULL){
+    while (currentNode->next != NULL) {
         previousNode = currentNode;
         currentNode = currentNode->next;
     }
-    
+
     free(currentNode);
 
-    // Update the previous node to point to NULL.
-    if (previousNode != NULL){
+    if (previousNode != NULL) {
         previousNode->next = NULL;
+    } else {
+        *root = NULL;
     }
-
-    return ;
 }
 
 int grabTailID(Node* linkedList){
