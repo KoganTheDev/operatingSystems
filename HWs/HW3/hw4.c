@@ -137,7 +137,6 @@ void* mainFunctionForCustomerThreads(void* threadNumber) {
                     sem_post(&semForEnteringTheLibrary);
                     sem_post(&semCustomerOutside);
                     printf("I'm Reader #%d, I've finished.\n", (threadID + 1));
-                    
                     break;
                 }
             } else {
@@ -170,7 +169,7 @@ void* mainFunctionForLibrarianThreads(void* threadNumber) {
     while (1) {
         sem_wait(&semFreeCustomers);
         printf("I'm Librarian #%d, I'm working now.\n", (threadID + 1));
-        //sleep(1);
+        sleep(1);
         sem_post(&semFreeLibrarian);
     }
 
