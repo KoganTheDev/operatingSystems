@@ -4,34 +4,51 @@
 #include <semaphore.h>
 #include <pthread.h>
 
+// Used to store customer`s information.
 typedef struct Node {
     int id;
     struct Node* next;
-} Node; 
+    struct Node* prev;
+} Node;
+
+// A manager`s structure to handle a queue.
+typedef struct Queue{
+    Node* head;
+    Node* tail;
+}Queue;
 
 // Function prototypes
-void* mainFunctionForCustomerThreads(void* threadIDNumber);
-void* mainFunctionForLibrarianThreads(void* threadIDNumber);
+void* customerThreadFunction(void* threadIDNumber);
+void* librarianThreadFunction(void* threadIDNumber);
 
 // Linked List functions
-Node* initLinkedList(int threadID);
-Node* addNodeToLinkedList(Node* root, int threadId);
-void removeTailFromTheLinkedList(Node** root);
-int grabTailID(Node* linkedList);
+Node* createNode(int threadID);
+Queue* enqueue(Queue* queue, Node* nodeToInsert);
+int dequeue(Queue* queue);
+
 
 // Global variables
 int N = 10; // Number of customer threads
 int K = 4;  // Number of chairs in the library waiting area
 
+// Global queues (Bidirectional LinkedLists).
+Queue* entranceQueue;
+Queue* couchQueue;
+Queue* lookingForInformationQueue;
+
+int placeLeftInLibrary; // Stores how much place is left in the library;
+
 // Semaphores for synchronization
-sem_t semForEnteringTheLibrary; // Controls library entry
-sem_t semFreeLibrarian;         // Tracks available librarians
-sem_t semFreeCustomers;         // Signals availability of customers
-sem_t semFreeChairToSitOn;      // Manages free chairs for waiting customers
-sem_t semCustomerOutside;       // Manages customers waiting outside
-sem_t mutexChairsList;          // Mutex for handling access to the list of chairs
-sem_t mutexLookingForInformationList; // Mutex for handling access to the list of people looking for information
-sem_t mutexOutOfLibrary;        // Mutex for controlling "out of library" print
+sem_t entrance;           
+sem_t availableLibrarians;    
+sem_t availableCouch;
+sem_t customersWaitingForLibraians;              
+
+// Queue mutex.
+sem_t entranceQueueMutex;           // Mutex for handling access to the list of chairs
+sem_t couchQueueMutex;             // Mutex for handling access to the list of people looking for information
+sem_t lookingForInformationQueueMutex;                // Mutex for controlling print statements
+
 
 int main(int argc, char* argv[]) {
     if (argc != 1) {
@@ -41,37 +58,55 @@ int main(int argc, char* argv[]) {
 
     pthread_t customerThreads[N + 2], librarianThreads[3];
     int threadCheck, i, threadNumber[N + 2];
-    
-    // Initialize the semaphores.
-    sem_init(&semForEnteringTheLibrary, 0, N);
-    sem_init(&semFreeLibrarian, 0, 3); // Initially there are 3 free librarians
-    sem_init(&semFreeCustomers, 0, 0);
-    sem_init(&semFreeChairToSitOn, 0, K); 
-    sem_init(&semCustomerOutside, 0, N);
-    sem_init(&mutexChairsList, 0, 1);
-    sem_init(&mutexLookingForInformationList, 0, 1);
-    sem_init(&mutexOutOfLibrary, 0, 1); // Initialize mutex for "out of library" print
 
-    // Initialize the numbers in the array named thread_number.
+    // Initialize the semaphores.
+    sem_init(&entrance, 0, N);  // Library can hold N customers
+    sem_init(&availableLibrarians, 0, 3); // Initially there are 3 free librarians
+    sem_init(&customersWaitingForLibraians, 0, 0); // mutually locks with available librarians.
+    sem_init(&availableCouch, 0, K); // Stores the amount the couches people can sit on.
+    // The next mutex are used to allow secure access to each one of the queue.
+    sem_init(&entranceQueueMutex, 0, 1); 
+    sem_init(&couchQueueMutex, 0, 1);
+    sem_init(&lookingForInformationQueueMutex, 0, 1);
+
+
+     // Initialize Queue for the customer function.
+    entranceQueue = (Queue*)malloc(sizeof(Queue));
+    if(entranceQueue == NULL){
+        printf("Memory allocation has failed when trying to allocate memory for \"&entranceQueue\".\n");
+        exit(EXIT_FAILURE);
+    }
+    couchQueue = (Queue*)malloc(sizeof(Queue));
+    if(couchQueue == NULL){
+        printf("Memory allocation has failed when trying to allocate memory for \"&couchQueue\".\n");
+        exit(EXIT_FAILURE);
+    }
+    lookingForInformationQueue = (Queue*)malloc(sizeof(Queue));
+    if(lookingForInformationQueue == NULL){
+        printf("Memory allocation has failed when trying to allocate memory for \"&lookingForInformationQueue\".\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Initialize the numbers in the array named threadNumber.
     for (i = 0; i < N + 2; i++) {
         threadNumber[i] = i;
     }
 
     // Create N+2 threads for the customers.
     for (i = 0; i < (N + 2); i++) {
-        threadCheck = pthread_create(&customerThreads[i], NULL, mainFunctionForCustomerThreads, &threadNumber[i]);
+        threadCheck = pthread_create(&customerThreads[i], NULL, customerThreadFunction, (void*)&threadNumber[i]);
         if (threadCheck) { // Creating a thread has failed.
             printf("Creating a thread for a customer has failed.\n");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
     }
 
     // Create 3 threads for the librarians.
     for (i = 0; i < 3; i++) {
-        threadCheck = pthread_create(&librarianThreads[i], NULL, mainFunctionForLibrarianThreads, &threadNumber[i]);
+        threadCheck = pthread_create(&librarianThreads[i], NULL, librarianThreadFunction, (void*)&threadNumber[i]);
         if (threadCheck) { // Creating a thread has failed.
             printf("Creating a thread for a librarian has failed.\n");
-            exit(1);
+            exit(EXIT_FAILURE);
         }
     }
 
@@ -84,147 +119,136 @@ int main(int argc, char* argv[]) {
     }
 
     // Destroy the semaphores.
-    sem_destroy(&semForEnteringTheLibrary);
-    sem_destroy(&semFreeLibrarian);
-    sem_destroy(&semFreeCustomers);
-    sem_destroy(&semFreeChairToSitOn);
-    sem_destroy(&semCustomerOutside);
-    sem_destroy(&mutexChairsList);
-    sem_destroy(&mutexLookingForInformationList);
-    sem_destroy(&mutexOutOfLibrary);
+    sem_destroy(&entrance);
+    sem_destroy(&availableLibrarians);
+    sem_destroy(&availableCouch);
+    sem_destroy(&customersWaitingForLibraians);
+    sem_destroy(&entranceQueueMutex);
+    sem_destroy(&couchQueueMutex);
+    sem_destroy(&lookingForInformationQueueMutex);
+
+    free(entranceQueue);
+    free(couchQueue);
+    free(lookingForInformationQueue);
 
     return 0;
 }
 
-void* mainFunctionForCustomerThreads(void* threadNumber) {
-    Node* customersSittingInAChair = NULL;
-    Node* customersLookingForInformation = NULL;
-    int threadID = *(int*)threadNumber;
-    int placeLeftInTheLibrary;
-    int availableLibrarians;
-    int availableChairs;
-
-    while (1) { 
-        sem_getvalue(&semForEnteringTheLibrary, &placeLeftInTheLibrary);
-
-        if (placeLeftInTheLibrary == 0) {
-            // Wait for a spot to become available and try again
-            sem_wait(&semCustomerOutside);
-            sem_post(&semCustomerOutside);
-            printf("I'm Reader #%d, I'm out of library.\n", (threadID + 1));
-        }
-        
-        // Enter the library
-        sem_wait(&semForEnteringTheLibrary);
-        printf("I'm Reader #%d, I got into the library.\n", (threadID + 1));
-
-        while (1) {
-            sem_getvalue(&semFreeLibrarian, &availableLibrarians);
-            if (availableLibrarians > 0) {
-                sem_wait(&semFreeLibrarian);
-                printf("I'm Reader #%d, I'm speaking with a librarian.\n", (threadID + 1));
-                sem_post(&semFreeCustomers);
-                sem_post(&semForEnteringTheLibrary); // Allow others to enter the library
-                break;
-            } else {
-                sem_getvalue(&semFreeChairToSitOn, &availableChairs);
-                if (availableChairs > 0) {
-                    sem_wait(&semFreeChairToSitOn);
-
-                    // Add this customer to the chair list
-                    sem_wait(&mutexChairsList);
-                    customersSittingInAChair = addNodeToLinkedList(customersSittingInAChair, threadID);
-                    sem_post(&mutexChairsList);
-
-                    // Check if this customer is the last one in the chair list
-                    if (grabTailID(customersSittingInAChair) == threadID) {
-                        printf("I'm Reader #%d, I'm reading a book.\n", (threadID + 1));
-                        // sleep(2); // Simulate time spent reading
-                        sem_wait(&mutexChairsList);
-                        removeTailFromTheLinkedList(&customersSittingInAChair);
-                        sem_post(&mutexChairsList);
-                        sem_post(&semFreeChairToSitOn);
-                        break;
-                    }
-                } else {
-                    // Add this customer to the list of people looking for information
-                    sem_wait(&mutexLookingForInformationList);
-                    customersLookingForInformation = addNodeToLinkedList(customersLookingForInformation, threadID);
-                    sem_post(&mutexLookingForInformationList);
-
-                    // Wait until a chair becomes available
-                    while (1) {
-                        sem_getvalue(&semFreeChairToSitOn, &availableChairs);
-                        if (availableChairs > 0) {
-                            if (grabTailID(customersLookingForInformation) == threadID) {
-                                sem_wait(&mutexLookingForInformationList);
-                                removeTailFromTheLinkedList(&customersLookingForInformation);
-                                sem_post(&mutexLookingForInformationList);
-                                break;
-                            }
-                        }
-                    }
-                }
+void* customerThreadFunction(void* threadIDNumber) {
+    // Create the node of the thread.
+    Node* threadNode = createNode(*(int*)threadIDNumber + 1);
+    while (1) {
+            sem_wait(&entranceQueueMutex); // Allow access to the &entrance queue.
+            enqueue(entranceQueue, threadNode);
+            sem_getvalue(&entrance, &placeLeftInLibrary); // Check how much room is left in thte library.
+            if (placeLeftInLibrary == 0){ // Meaning there`s no more toom to enter.
+                printf("I'm Reader #%d, I'm out of library\n", threadNode->id);
             }
-        }
+            sem_post(&entranceQueueMutex); // Allow another thread to access the queue.
+            sleep(1);
 
-        sem_post(&semForEnteringTheLibrary);
-        printf("I'm Reader #%d, I've finished.\n", (threadID + 1));
+            while (entranceQueue->tail->id != threadNode->id){}
+                sem_wait(&entrance); // Update the amount of customers who entered the library.
+                sem_wait(&entranceQueueMutex); // Allow access to the &entrance to the library queue.
+                dequeue(entranceQueue); // dequeue the tail of the list.
+                sem_post(&entranceQueueMutex); // Allow another thread to access the &entrance queue.
+                sem_wait(&couchQueueMutex); // Allow access to the couch queue.
+                enqueue(couchQueue, threadNode);
+                sem_post(&couchQueueMutex); // Allow another thread to access the couch queue.
+                printf("I'm Reader #%d, I got into the library\n", threadNode->id);
+                sleep(1);
+            while(couchQueue->tail->id != threadNode->id){}
+                sem_wait(&availableCouch); // Update the amount of couches available to customers.
+                sem_wait(&couchQueueMutex); // Allow access to the couch queue.
+                dequeue(couchQueue); // Emit the tail from the couch queue.
+                sem_post(&couchQueueMutex); // Reallow access to the couch queue.
+                sem_wait(&lookingForInformationQueueMutex); // Start looking for information.
+                enqueue(lookingForInformationQueue, threadNode);
+                sem_post(&lookingForInformationQueueMutex); // Reallow access to the queue.
+                printf("I'm Reader #%d, I'm reading a book\n", threadNode->id);
+                sleep(1);
+            while(lookingForInformationQueue->tail->id != threadNode->id){}
+                sem_wait(&availableLibrarians);  // Update the amount of available librarians.
+                sem_wait(&lookingForInformationQueueMutex); // Allow access to the queue of people lookign for information.
+                dequeue(lookingForInformationQueue);
+                sem_post(&lookingForInformationQueueMutex); // Reallow access.
+                sem_post(&availableCouch);
+                sem_post(&customersWaitingForLibraians);
+                printf("I'm Reader #%d, I'm speaking with a librarian\n", threadNode->id);
+                sleep(1);
+                printf("I'm Reader #%d, I've finished\n", threadNode->id);
+                sleep(1);
+                sem_post(&entrance); // Exit the library.
+            }
+            
+    return NULL;
+}
+
+void* librarianThreadFunction(void* threadIDNumber) {
+    int threadID = *(int*)threadIDNumber;
+
+    while (1) {
+        sem_wait(&customersWaitingForLibraians); // Help a customer.
+        printf("I'm Librarian #%d, I'm working now.\n", threadID + 1);
+        sleep(1);
+        sem_post(&availableLibrarians); // Note the librarian finished working with the customer.
     }
 
     return NULL;
 }
 
-void* mainFunctionForLibrarianThreads(void* threadNumber) {
-    int threadID = *(int*)threadNumber;
-
-    while (1) {
-        sem_wait(&semFreeCustomers);
-        printf("I'm Librarian #%d, I'm working now.\n", (threadID + 1));
-        sleep(1);
-        sem_post(&semFreeLibrarian);
-    }
-}
-
-Node* initLinkedList(int threadID) {
-    Node* root = (Node*)malloc(sizeof(Node));
-    root->next = NULL;
-    root->id = threadID;
-    return root;
-}
-
-Node* addNodeToLinkedList(Node* root, int threadId) {
-    Node* newRoot = (Node*)malloc(sizeof(Node));
-    newRoot->id = threadId;
-    newRoot->next = root;
-    return newRoot;
-}
-
-void removeTailFromTheLinkedList(Node** root) {
-    Node* currentNode = *root;
-    Node* previousNode = NULL;
-    if (currentNode == NULL) return;
-
-    while (currentNode->next != NULL) {
-        previousNode = currentNode;
-        currentNode = currentNode->next;
+Node* createNode(int threadID) {
+    Node* node = (Node*)malloc(sizeof(Node));
+    if (node == NULL){ // memory allocation error check.
+        printf("Memory allocation has failed when trying to allocate memory for \"createNode\".\n");
+        exit(EXIT_FAILURE);
     }
 
-    if (previousNode == NULL) {
-        free(*root);
-        *root = NULL;
-    } else {
-        free(currentNode);
-        previousNode->next = NULL;
-    }
+    node->id = threadID;
+
+    node->next = NULL;
+    node->prev = NULL;
+    return node;
 }
 
-int grabTailID(Node* linkedList) {
-    Node* currentNode = linkedList;
-    if (currentNode == NULL) return -1;
+Queue* enqueue(Queue* queue, Node* nodeToInsert){
+    // If the queue is empty, add the first customer to come and return the queue.
+    if (queue->head == NULL){ // meaning the queue is empty.
+        queue->head = nodeToInsert;
+        queue->tail = nodeToInsert;
 
-    while (currentNode->next != NULL) {
-        currentNode = currentNode->next;
+        return queue;
     }
-    return currentNode->id;
+
+    // Otherwise add the new customer to the head.
+    queue->head->prev = nodeToInsert; // put the new node before the "head" node.
+    nodeToInsert->next = queue->head; // put the next pointer of the new head to what was beforehand the head of the queue.
+    queue->head = nodeToInsert; // Update the head of the queue to be the new node that was inserted.
+
+    return queue;
+}
+
+
+int dequeue(Queue* queue){
+    Node* node = queue->tail;
+
+    // If the queue is empty, -1 can indicate that since the threadIDs start from zero onwards.
+    if (node == NULL){
+        return -1;
+    }
+
+    int threadID = node->id;
+    
+    // Special case: The queue has only one node, therefore update the head and tail to be null.
+    if (node->prev == NULL){
+        queue->tail = NULL;
+        queue->head = NULL;
+        return threadID;
+    }
+
+    // Update the queue.
+    queue->tail = node->prev;
+    queue->tail->next == NULL;
+
+    return threadID;
 }
